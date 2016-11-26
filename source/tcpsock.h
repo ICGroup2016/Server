@@ -1,8 +1,9 @@
 #ifndef TCPSOCK_H
 #define TCPSOCK_H
 #include"stdafx.h"
-class TcpSock
+class TcpSock:public QObject
 {
+    Q_OBJECT
 public:
     TcpSock(int sockDescript,int id,QString name);
     void sendMessage(Message msg);
