@@ -12,17 +12,15 @@ public:
     Message getMessage() const;
     void processMessage(Message msg);
 signals:
-    void emitMessage();
+    void emitMessage(Message);
 private slots:
     void handleInput();
     void emitError();
 private:
-    void sendMessage(Message msg);
     int id;
     QString name;
     QTcpSocket socket;
     QDataStream io;
-    Message message;
     QMutex readLock;
     QMutex writeLock;
 };
