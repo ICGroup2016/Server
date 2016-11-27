@@ -4,4 +4,6 @@
 !.gitignore
 !*.h
 !*.c
-!*.ui
+!source
+!documentation*
+!*.xls*
