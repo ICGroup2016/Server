@@ -4,7 +4,7 @@
 #include<QtNetwork>
 #include"message.h"
 #include"tcpsock.h"
-
+#include"runtime.h"
 class RoomSrv : public QObject
 {
     Q_OBJECT

@@ -13,13 +13,15 @@ SOURCES += main.cpp \
     tcpsock.cpp \
     message.cpp \
     roomsrv.cpp \
-    Server/main.cpp
+    Server/main.cpp \
+    runtime.cpp
 
 HEADERS += \
     tcpsock.h \
     message.h \
     stdafx.h \
-    roomsrv.h
+    roomsrv.h \
+    runtime.h
 
 SUBDIRS += \
     Server/nbproject/qt-Debug.pro \
