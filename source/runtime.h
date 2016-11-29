@@ -79,7 +79,7 @@ public:
     void SeeResult(int res);  //预言家看谁
 
 signals:
-    SendMessage(Message);
+    void SendMessage(Message);
 };
 
 

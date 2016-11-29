@@ -23,8 +23,8 @@ void TcpSock::handleInput(){
     emit emitMessage(message);
 }
 void TcpSock::processMessage(Message msg){
-    if(msg.getReceiverType()==1&&msg.getReceiverid()=id){
-        QMutexLocker locker(&writeLock);
+    QMutexLocker locker(&messageLock);
+    if(msg.getReceiverType()==1&&msg.getReceiverid()==id){
         io<<msg;
         return;
     }

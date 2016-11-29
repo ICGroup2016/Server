@@ -9,7 +9,6 @@ class TcpSock:public QObject
     Q_OBJECT
 public:
     TcpSock(QObject *parent=0, int _sockDescript=0, int _id=0, QString _name=0);
-    Message getMessage() const;
     void processMessage(Message msg);
 signals:
     void emitMessage(Message);
@@ -21,8 +20,7 @@ private:
     QString name;
     QTcpSocket socket;
     QDataStream io;
-    QMutex readLock;
-    QMutex writeLock;
+    QMutex messageLock;
 };
 
 #endif // TCPSOCK_H
