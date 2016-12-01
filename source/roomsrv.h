@@ -9,24 +9,24 @@ class RoomSrv : public QObject
 {
     Q_OBJECT
 public:
-    explicit RoomSrv(QObject *parent = 0, int _num=0);
-    void processMessage(Message msg);
+    explicit RoomSrv(QObject *parent = 0, int _num=0,int _id=0);
 signals:
     void emitMessage(Message);
 private slots:
     void processRuntimeMessage(Message);
 private:
     void redirectMessage(int, int, Message);
-    void addPlayer(int id);
-    void removePlayer(int seat);
+    bool addPlayer(int);
+    bool removePlayer(int);
     void returnResult(Message,bool);
     void startLater();
+    bool event(QEvent *);
     int num;
     int ready;
+    int id;
     bool aboutToStart;
     QHash<int,int> map;
-    runtime *rt;
-    QWaitCondition waitForResponse;
+    runtime rt;
     QMutex messageLock;
 };
 

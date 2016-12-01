@@ -5,6 +5,8 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
     connect(&socket,SIGNAL(QAbstractSocket::error(QAbstractSocket::SocketError socketError)),this,SLOT(emitError()));
     connect(&socket,&QTcpSocket::readyRead,this,&TcpSock::handleInput);
     if(!socket.setSocketDescriptor(_sockDescript)){
+        Message tmp;
+        emit emitMessage(tmp);
         return;
     }
     io.setDevice(&socket);
@@ -22,10 +24,14 @@ void TcpSock::handleInput(){
     io>>message;
     emit emitMessage(message);
 }
-void TcpSock::processMessage(Message msg){
-    QMutexLocker locker(&messageLock);
-    if(msg.getReceiverType()==1&&msg.getReceiverid()==id){
-        io<<msg;
-        return;
+bool TcpSock::event(QEvent *e){
+    if(e->type()!=QEvent::User)
+        return QObject::event(e);
+    Message tmp=*(Message *)e;
+    if(tmp.getReceiverType()==1&&tmp.getReceiverid()==id){
+        QMutexLocker lock(&messageLock);
+        io<<tmp;
+        return true;
     }
+    return false;
 }

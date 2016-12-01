@@ -2,7 +2,7 @@
 #define MESSAGE_H
 #include<QtCore>
 
-class Message
+class Message:public QEvent
 {
 public:
     Message(int t=0,int st=0,int rt=0,int ri=0);
