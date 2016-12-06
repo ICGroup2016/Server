@@ -76,6 +76,9 @@ public:
     void MedicineResult(bool res);  //女巫解药是否使用
     void PoisonResult(int tar);  //女巫毒药对谁使用
     void SeeResult(int res);  //预言家看谁
+    void OfficerElection(int,int);
+    void OfficerPass(int);
+    void OfficerDecide(int,bool);
 
 signals:
     void SendMessage(Message);

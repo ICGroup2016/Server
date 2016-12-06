@@ -20,7 +20,6 @@ private:
     QString name;
     QTcpSocket socket;
     QDataStream io;
-    QMutex messageLock;
 };
 
 #endif // TCPSOCK_H

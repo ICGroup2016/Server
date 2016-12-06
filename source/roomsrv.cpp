@@ -1,9 +1,9 @@
 #include "roomsrv.h"
 
 RoomSrv::RoomSrv(QObject *parent, int _num, int _id)
-    : QObject(parent),rt(_num)
+    : QObject(parent),rt(_num,_id)
 {
-    connect(&rt,&runtime::SendMessage,this,&RoomSrv::processRuntimeMessage);
+    connect(&rt,&RuntimeWrapper::emitMessage,this,&RoomSrv::processRuntimeMessage);
     num=_num;
     ready=0;
     id=_id;
@@ -15,10 +15,15 @@ void RoomSrv::returnResult(Message msg, bool res){
     emit emitMessage(res);
 }
 bool RoomSrv::event(QEvent *e){
-    if(e->type()!=QEvent::User)
+    if(e->type()!=(QEvent::Type)2333)
         return QObject::event(e);
     Message tmp=*(Message *)e;
-    if(tmp.getType()==2)
+    if(tmp.getType()==0){
+        removePlayer(true,tmp.getArgument()[0]);
+    }
+    else if(tmp.getType()==1)
+        rt.processMessage(tmp);
+    else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 0:
             returnResult(tmp,addPlayer(tmp.getArgument()[0]));
@@ -26,7 +31,7 @@ bool RoomSrv::event(QEvent *e){
         case 1:
             ready++;
             if(ready==num)
-                startLater();
+                startGame();
             break;
         case 2:
             if(aboutToStart)
@@ -39,55 +44,81 @@ bool RoomSrv::event(QEvent *e){
         case 3:
             returnResult(tmp,removePlayer(tmp.getArgument()[0]));
             break;
-        case 4:
-            Message gameStart(2,4,0,0);
-            emit emitMessage(gameStart);
-            rt.Game();
-            break;
-        default:
-            break;
         }
+    }
+    return false;
 }
 
 void RoomSrv::processRuntimeMessage(Message msg){
-    if(msg.getReceiverid()!=-1){
-        msg.setReceiverid(map[msg.getReceiverid()]);
-        emit emitMessage(msg);
-    }
-    else
-        for(int i=0;i<num;i++){
-            msg.setReceiverid(map[i]);
-            emit emitMessage(msg);
-        }
+    redirectMessage(msg);
 }
 bool RoomSrv::addPlayer(int id){
     if(map.size()==num)
         return false;
     int i=0;
     while(map.contains(i))i++;
-    for(int j=0;j<num;j++)
-        if(map.contains(j)){
-            Message tmp(2,0,1,map[j]);
-            tmp.addArgument(id);
-            emit emitMessage(tmp);
-        }
     map.insert(i,id);
-    return true;
-}
-bool RoomSrv::removePlayer(int id){
-    if(aboutToStart)
-        return false;
-    map.remove(map.key(id));
+    if(map.size()==num){
+        Message tmp(2,8);
+        tmp.addArgument(1);
+        emit emitMessage(tmp);
+    }
+    Message msg(2,6,1,-1);
+    QVector<int> players;
     for(int i=0;i<num;i++)
-        if(map.contains(j)){
-            Message tmp(2,3,1,map[j]);
-            tmp.addArgument(id);
-            emit emitMessage(tmp);
-        }
+        if(map.contains(i))
+            players.append(map[i]);
+    msg.setArgument(players);
+    redirectMessage(msg);
     return true;
 }
-void RoomSrv::startLater(){
-    aboutToStart=true;
-    Message tmp(2,4,3,id);
+bool RoomSrv::removePlayer(bool force, int id){
+    if(aboutToStart&&!force)
+        return false;
+    Message tmp(2,8);
+    tmp.addArgument(0);
     emit emitMessage(tmp);
+    Message msg(2,6,1,-1);
+    QVector<int> players;
+    for(int i=0;i<num;i++)
+        if(map.contains(i))
+            players.append(map[i]);
+    msg.setArgument(players);
+    redirectMessage(msg);
+    map.remove(map.key(id));
+    return true;
+}
+void RoomSrv::startGame(){
+    Message tmp(2,4);
+    emit emitMessage(tmp);
+    tmp.setReceiverType(1);
+    tmp.setReceiverid(-1);
+    redirectMessage(tmp);
+    rt.start();
+}
+void RoomSrv::redirectMessage(Message msg){
+    if(msg.getReceiverType()==1){
+        if(msg.getReceiverid()!=-1){
+            msg.setReceiverid(map[msg.getReceiverid()]);
+            emit emitMessage(msg);
+        }
+    }
+        else
+            for(int i=0;i<num;i++)
+                if(map.contains(i)){
+                    msg.setReceiverid(map[i]);
+                    emit emitMessage(msg);
+                }
+    /*
+    else if(msg.getType()==2)
+        switch(msg.getSubtype()){
+        case 7:
+            for(int i=0;i<audience.size();i++)
+                if(map.contains(audience[i])){
+                    msg.setReceiverType(1);
+                    msg.setReceiverid(map[audience[i]]);
+                    emit emitMessage(msg);
+                }
+        }
+    */
 }

@@ -16,7 +16,7 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
 void TcpSock::emitError(){
     Message message(0,0,0,0);
     message.setDetail(socket.errorString());
-    message.addArgument(0);
+    message.addArgument(id);
     emit emitMessage(message);
 }
 void TcpSock::handleInput(){
@@ -29,7 +29,6 @@ bool TcpSock::event(QEvent *e){
         return QObject::event(e);
     Message tmp=*(Message *)e;
     if(tmp.getReceiverType()==1&&tmp.getReceiverid()==id){
-        QMutexLocker lock(&messageLock);
         io<<tmp;
         return true;
     }

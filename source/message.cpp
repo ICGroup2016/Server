@@ -1,7 +1,7 @@
 #include "message.h"
 
 Message::Message(int t, int st, int rt, int ri)
-    :QEvent(QEvent::User)
+    :QEvent((QEvent::Type)2333)
 {
     type=t,subtype=st,receivertype=rt,receiverid=ri;
 }

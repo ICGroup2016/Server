@@ -5,6 +5,7 @@
 #include"message.h"
 #include"tcpsock.h"
 #include"runtime.h"
+#include"runtimewrapper.h"
 class RoomSrv : public QObject
 {
     Q_OBJECT
@@ -12,21 +13,23 @@ public:
     explicit RoomSrv(QObject *parent = 0, int _num=0,int _id=0);
 signals:
     void emitMessage(Message);
-private slots:
-    void processRuntimeMessage(Message);
 private:
-    void redirectMessage(int, int, Message);
+    void processRuntimeMessage(Message);
+    void redirectMessage(Message);
     bool addPlayer(int);
-    bool removePlayer(int);
+    bool removePlayer(bool force=false, int i=0);
     void returnResult(Message,bool);
-    void startLater();
+    void startGame();
+    void openDiscussion(QVector<int> list,int _spcnt);
     bool event(QEvent *);
     int num;
     int ready;
     int id;
+    int speakerCount;
     bool aboutToStart;
     QHash<int,int> map;
-    runtime rt;
+    QVector<int> audience;
+    RuntimeWrapper rt;
     QMutex messageLock;
 };
 
