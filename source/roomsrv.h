@@ -19,14 +19,16 @@ private:
     bool addPlayer(int);
     bool removePlayer(bool force=false, int i=0);
     void returnResult(Message,bool);
+    void sendRoomInfo();
     void startGame();
-    void openDiscussion(QVector<int> list,int _spcnt);
+    void openDiscussion(int receiver=-1, QVector<int> *list=nullptr);
     bool event(QEvent *);
     int num;
     int ready;
     int id;
     int speakerCount;
     bool aboutToStart;
+    bool inDiscussion;
     QHash<int,int> map;
     QVector<int> audience;
     RuntimeWrapper rt;
