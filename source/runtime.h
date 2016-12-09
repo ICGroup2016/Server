@@ -79,7 +79,7 @@ public:
     void OfficerPass(int receiver);   //警徽流动
     void OfficerDecide(int voted, bool direction); //警长归票，决定发言顺序，true为警左发言
     void DayVote();   //白天投票
-    void setExplode(int x);  //x号玩家自爆
+    bool setExplode(int x);  //x号玩家自爆
     void HunterKill(int x);  //猎人带走x号玩家
 
 signals:
