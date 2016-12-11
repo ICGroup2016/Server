@@ -34,3 +34,6 @@ bool TcpSock::event(QEvent *e){
     }
     return false;
 }
+int TcpSock::getID(){
+    return id;
+}

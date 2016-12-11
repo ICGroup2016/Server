@@ -153,3 +153,6 @@ void RoomSrv::openDiscussion(int receiver, QVector<int> *list){
     }
     inDiscussion=true;
 }
+int RoomSrv::getID(){
+    return id;
+}

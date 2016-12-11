@@ -29,5 +29,5 @@ private:
     QString detail;
     QVector<int> arguments;
 };
-
+Q_DECLARE_METATYPE(Message)
 #endif // MESSAGE_H

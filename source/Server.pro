@@ -15,7 +15,8 @@ SOURCES += main.cpp \
     message.cpp \
     roomsrv.cpp \
     runtime.cpp \
-    runtimewrapper.cpp
+    runtimewrapper.cpp \
+    daemon.cpp
 
 HEADERS += \
     tcpsock.h \
@@ -23,7 +24,8 @@ HEADERS += \
     stdafx.h \
     roomsrv.h \
     runtime.h \
-    runtimewrapper.h
+    runtimewrapper.h \
+    daemon.h
 
 SUBDIRS += \
     Server/nbproject/qt-Debug.pro \

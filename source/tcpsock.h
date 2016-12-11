@@ -9,6 +9,7 @@ class TcpSock:public QObject
     Q_OBJECT
 public:
     TcpSock(QObject *parent=0, int _sockDescript=0, int _id=0, QString _name=0);
+    int getID();
 signals:
     void emitMessage(Message);
 private slots:

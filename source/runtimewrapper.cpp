@@ -41,7 +41,7 @@ void RuntimeWrapper::processMessage(Message msg)
             rt.SeeResult(msg.getArgument()[0]);
             break;
         case 11:
-            rt.Candidate(msg.getArgument());
+            rt.OfficerCandidate(msg.getArgument());
             break;
         case 13:
             rt.OfficerElection(msg.getArgument()[0],msg.getArgument()[1]);

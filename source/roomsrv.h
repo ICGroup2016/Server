@@ -11,6 +11,7 @@ class RoomSrv : public QObject
     Q_OBJECT
 public:
     explicit RoomSrv(QObject *parent = 0, int _num=0,int _id=0);
+    int getID();
 signals:
     void emitMessage(Message);
 private:
