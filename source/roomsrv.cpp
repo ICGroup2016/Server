@@ -24,6 +24,8 @@ bool RoomSrv::event(QEvent *e){
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 0:
+            if(tmp.getArgument().isEmpty())
+                return false;
             returnResult(tmp,addPlayer(tmp.getArgument()[0]));
             break;
         case 1:
@@ -42,9 +44,13 @@ bool RoomSrv::event(QEvent *e){
             }
             break;
         case 3:
+            if(tmp.getArgument().size()<2)
+                return false;
             returnResult(tmp,removePlayer(tmp.getArgument()[1],tmp.getArgument()[0]));
             break;
         case 7:
+            if(tmp.getArgument().isEmpty())
+                return false;
             if(inDiscussion&&tmp.getArgument()[0]==0){
                 tmp.setType(1);
                 tmp.setSubtype(10);

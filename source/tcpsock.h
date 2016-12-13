@@ -22,5 +22,4 @@ private:
     QTcpSocket socket;
     QDataStream io;
 };
-
 #endif // TCPSOCK_H

@@ -4,7 +4,7 @@ Daemon::Daemon(QObject *parent)
     :QTcpServer(parent)
 {
     if(this->listen())
-        qDebug()<<tr("The server is listening on %1 ip and %2 port").arg(this->serverAddress().toString()).arg(this->serverPort());
+        qDebug()<<tr("The server is listening on %1 ip and %2 port").arg(QHostAddress(QHostAddress::LocalHost).toString()).arg(this->serverPort());
 }
 void Daemon::incomingConnection(qintptr _descriptr){
     int id=0;
@@ -21,18 +21,25 @@ void Daemon::incomingConnection(qintptr _descriptr){
     t->start();
 }
 bool Daemon::event(QEvent *e){
+    qDebug()<<"Got message in Daemon:"<<e->type()<<"\n";
     if(e->type()!=(QEvent::Type)2333)
         return QTcpServer::event(e);
     Message tmp=*(Message *)e;
     if(tmp.getType()==0){
         switch(tmp.getSubtype()){
         case 0:
+            if(tmp.getArgument().isEmpty())
+                return false;
             onNetworkError(tmp.getArgument()[0]);
             break;
         case 1:
+            if(tmp.getArgument().size()<2)
+                return false;
             addRoom(tmp.getArgument()[0],tmp.getArgument()[1]);
             break;
         case 2:
+            if(tmp.getArgument().isEmpty())
+                return false;
             Message msg(0,2,1,tmp.getArgument()[0]);
             msg.setArgument(genRoomInfo());
             deliverMessage(msg);
@@ -44,6 +51,8 @@ bool Daemon::event(QEvent *e){
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 6:
+            if(tmp.getArgument().size()<4)
+                return false;
             QVector<int> arg;
             for(int i=3;i<tmp.getArgument().size();i++)
                 arg.push_back(tmp.getArgument()[i]);
@@ -53,9 +62,10 @@ bool Daemon::event(QEvent *e){
     return true;
 }
 void Daemon::onNetworkError(int id){
+    qDebug()<<id<<" network error!\n";
     for(int i=0;i<connections.size();i++)
         if(connections[i]->getID()==id)
-            connections[i]->deleteLater();
+            connections.removeAt(i);
     if(map[id]!=-1){
         Message msg(2,3,2,map[id]);
         msg.addArgument(id);
@@ -80,8 +90,10 @@ void Daemon::addRoom(int num, int own){
     Message msg(2,3,2,id);
     msg.addArgument(own);
     deliverMessage(msg);
+    qDebug()<<"Room #"<<id<<"added";
 }
 void Daemon::deliverMessage(Message msg){
+    qDebug()<<"Delivering message....";
     Message *tmp=new Message();
     *tmp=msg;
     switch(msg.getReceiverType()){
@@ -101,6 +113,7 @@ void Daemon::deliverMessage(Message msg){
     }
 }
 void Daemon::dispatchRoomInfo(int id, int num, int ready, QVector<int> players){
+    qDebug()<<"Dispatching room info....";
     int index=0;
     while(roominfo[index].first!=id)
         index++;
@@ -122,6 +135,7 @@ void Daemon::dispatchRoomInfo(int id, int num, int ready, QVector<int> players){
         }
 }
 QVector<int> Daemon::genRoomInfo(){
+    qDebug()<<"Generating room info...";
     QVector<int> result;
     int count=0;
     for(int i=0;i<roominfo.size();i++)
