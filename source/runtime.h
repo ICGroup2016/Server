@@ -46,7 +46,8 @@ private:
     bool Poison;   //毒药是否已使用
     int PoisonTarget;    //被毒者编号
     int ExplodeID;       //自爆者编号
-    QVector <int> WhisperResults;  //狼人讨论结果
+    QVector<bool> PlayerOnline;       //是否在线
+    QVector<int> WhisperResults;  //狼人讨论结果
     QVector<int> AliveList;   //游戏进行中存活玩家的座位号
     QVector<int> WolfList;    //游戏进行中存活狼人的座位号
     QVector<int> KilledTonight;    //某天晚上死亡的玩家座位号列表
@@ -61,6 +62,7 @@ private:
     bool Winner;       //获胜方
     bool Explode;     //是否有人自爆
     bool SeeResultIsWolf;   //预言结果是否为狼人
+
     bool Check();     //判断游戏结束
     bool CheckWinner();    //返回游戏结果
     void Assign();    //分配身份
@@ -81,9 +83,11 @@ public:
     void DayVote();   //白天投票
     bool setExplode(int x);  //x号玩家自爆
     void HunterKill(int x);  //猎人带走x号玩家
+    void RemovePlayer(int x);    //某玩家断线
 
 signals:
     void SendMessage(Message);
+    void Wait(int);
 };
 
 
