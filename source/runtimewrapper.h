@@ -8,7 +8,7 @@ class RuntimeWrapper : public QThread
     Q_OBJECT
 public:
     RuntimeWrapper(QObject *parent=0,int num=0,int id=0);
-    void processMessage(Message);
+    bool processMessage(Message);
     void stopWaitForPlayer(int);
     void playerOffline(int);
 signals:

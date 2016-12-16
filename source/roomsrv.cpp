@@ -24,7 +24,7 @@ bool RoomSrv::event(QEvent *e){
         if(map.key(tmp.getSenderid(),-1)==-1)
             return false;
         tmp.setSenderid(map.key(tmp.getSenderid()));
-        rt.processMessage(tmp);
+        return rt.processMessage(tmp);
     }
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
