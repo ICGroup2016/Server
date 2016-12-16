@@ -1,12 +1,12 @@
 #include "runtimewrapper.h"
 
-RuntimeWrapper::RuntimeWrapper(int num,int _ID)
-    :rt(num)
+RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
+    :QThread(parent),rt(this,num)
 {
     isWaiting=false;
-    roomID=_ID;
+    roomID=id;
     rt.moveToThread(this);
-    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage,Qt::DirectConnection);
+    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage);
 }
 void RuntimeWrapper::run()
 {
@@ -14,49 +14,80 @@ void RuntimeWrapper::run()
     Message msg(2,5,3,roomID);
     emit emitMessage(msg);
 }
-void RuntimeWrapper::processRuntimeMessage(Message msg)
-{
-    messageLock.lock();
-    emit emitMessage(msg);
-    if(msg.getSubtype()>=5&&msg.getSubtype()!=10){
-        isWaiting=true;
-        waitForResponse.wait(&messageLock);
-    }
-    messageLock.unlock();
-}
 void RuntimeWrapper::processMessage(Message msg)
 {
-    if(msg.getType()==1)
+    if(msg.getType()==1){
         switch(msg.getSubtype()){
         case 6:
+            if(msg.getArgument().isEmpty())
+                return;
             rt.WhisperResult(msg.getArgument()[0]);
             break;
         case 7:
+            if(msg.getArgument().isEmpty())
+                return;
             rt.MedicineResult(msg.getArgument()[0]);
             break;
         case 8:
+            if(msg.getArgument().isEmpty())
+                return;
             rt.PoisonResult(msg.getArgument()[0]);
             break;
         case 9:
+            if(msg.getArgument().isEmpty())
+                return;
             rt.SeeResult(msg.getArgument()[0]);
             break;
         case 11:
-            rt.OfficerCandidate(msg.getArgument());
+            if(msg.getArgument().isEmpty())
+                return;
+            rt.OfficerCandidate(msg.getArgument()[0]);
             break;
         case 13:
+            if(msg.getArgument().size()<2)
+                return;
             rt.OfficerElection(msg.getArgument()[0],msg.getArgument()[1]);
             break;
         case 14:
+            if(msg.getArgument().isEmpty())
+                return;
             rt.OfficerPass(msg.getArgument()[0]);
             break;
         case 15:
+            if(msg.getArgument().size()<2)
+                return;
             rt.OfficerDecide(msg.getArgument()[0],msg.getArgument()[1]);
             break;
         }
-    messageLock.lock();
-    if(isWaiting){
-        isWaiting=false;
+        stopWaitForPlayer(msg.getSenderid());
+    }
+}
+void RuntimeWrapper::waitForPlayer(int i){
+    waitLock.lock();
+    if(i!=-1){
+        waitList.clear();
+        waitList.append(i);
+    }
+    waitForResponse.wait(&waitLock);
+    waitLock.unlock();
+}
+void RuntimeWrapper::processRuntimeMessage(Message msg){
+    if(msg.getSubtype()==5)
+        waitList=msg.getArgument();
+    emit emitMessage(msg);
+}
+void RuntimeWrapper::stopWaitForPlayer(int i){
+    waitLock.lock();
+    if(waitList.contains(i))
+        waitList.remove(waitList.indexOf(i));
+    if(waitList.isEmpty()||i==-1){
+        waitList.clear();
+        waitLock.unlock();
         waitForResponse.wakeAll();
     }
-    messageLock.unlock();
+    waitLock.unlock();
+}
+void RuntimeWrapper::playerOffline(int i){
+    rt.RemovePlayer(i);
+    stopWaitForPlayer(i);
 }

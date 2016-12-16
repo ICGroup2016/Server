@@ -114,7 +114,8 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     }
 }
 
-runtime::runtime(QObject * parent = 0,int num):QObject(parent)
+runtime::runtime(QObject * parent,int num)
+    :QObject(parent)
 {
     player_num = num;
     Poison = true;

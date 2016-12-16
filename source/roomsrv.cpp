@@ -1,17 +1,18 @@
 #include "roomsrv.h"
 
 RoomSrv::RoomSrv(QObject *parent, int _num, int _id)
-    : QObject(parent),rt(_num,_id)
+    : QObject(parent),rt(this,_num,_id)
 {
     connect(&rt,&RuntimeWrapper::emitMessage,this,&RoomSrv::processRuntimeMessage);
     connect(&rt,&RuntimeWrapper::finished,&rt,&RuntimeWrapper::deleteLater);
     num=_num;
     ready=0;
     id=_id;
-    aboutToStart=false;
+    allowJoin=true;
+    allowExit=true;
 }
 void RoomSrv::returnResult(Message msg, bool res){
-    Message response(2,msg.getSubtype(),1,map[msg.getArgument()[0]]);
+    Message response(msg.getType(),msg.getSubtype(),msg.getSenderType(),msg.getSenderid(),msg.getReceiverType(),msg.getReceiverid());
     response.addArgument(res);
     emit emitMessage(res);
 }
@@ -26,7 +27,7 @@ bool RoomSrv::event(QEvent *e){
         case 0:
             if(tmp.getArgument().isEmpty())
                 return false;
-            returnResult(tmp,addPlayer(tmp.getArgument()[0]));
+            returnResult(tmp,addPlayer(tmp.getSenderid()));
             break;
         case 1:
             ready++;
@@ -44,9 +45,9 @@ bool RoomSrv::event(QEvent *e){
             }
             break;
         case 3:
-            if(tmp.getArgument().size()<2)
+            if(tmp.getArgument().isEmpty())
                 return false;
-            returnResult(tmp,removePlayer(tmp.getArgument()[1],tmp.getArgument()[0]));
+            returnResult(tmp,removePlayer(tmp.getArgument()[0],tmp.getSenderid()));
             break;
         case 7:
             if(tmp.getArgument().isEmpty())
@@ -58,15 +59,16 @@ bool RoomSrv::event(QEvent *e){
                 tmp.setReceiverid(-2);
                 redirectMessage(tmp);
             }
-            else if(tmp.getArgument()[0]==1)
+            else if(tmp.getArgument()[0]==1){
                 speakerCount--;
-            else if(tmp.getArgument()[0]==-1)
-                speakerCount=0;
-            if(speakerCount==0){
-                inDiscussion=false;
-                Message msg(1,-1);
-                rt.processMessage(msg);
+                rt.stopWaitForPlayer(tmp.getSenderid());
             }
+            else if(tmp.getArgument()[0]==-1){
+                speakerCount=0;
+                rt.stopWaitForPlayer(-1);
+            }
+            if(speakerCount==0)
+                inDiscussion=false;
         }
     }
     return false;
@@ -80,21 +82,16 @@ void RoomSrv::processRuntimeMessage(Message msg){
         openDiscussion();
 }
 bool RoomSrv::addPlayer(int id){
-    if(map.size()==num)
+    if(!allowJoin)
         return false;
     int i=0;
     while(map.contains(i))i++;
     map.insert(i,id);
-    if(map.size()==num){
-        Message tmp(2,8);
-        tmp.addArgument(1);
-        emit emitMessage(tmp);
-    }
     sendRoomInfo();
     return true;
 }
 bool RoomSrv::removePlayer(bool force, int id){
-    if(aboutToStart&&!force)
+    if(!allowExit&&!force)
         return false;
     Message tmp(2,8);
     tmp.addArgument(0);
@@ -104,6 +101,8 @@ bool RoomSrv::removePlayer(bool force, int id){
     return true;
 }
 void RoomSrv::startGame(){
+    allowExit=false;
+    allowJoin=false;
     Message tmp(2,4);
     emit emitMessage(tmp);
     tmp.setReceiverType(1);
@@ -112,6 +111,8 @@ void RoomSrv::startGame(){
     rt.start();
 }
 void RoomSrv::redirectMessage(Message msg){
+    msg.setSenderType(2);
+    msg.setSenderid(id);
     if(msg.getReceiverType()==1){
         if(msg.getReceiverid()==-1)
             for(int i=0;i<num;i++)
@@ -143,7 +144,7 @@ void RoomSrv::sendRoomInfo(){
             info.addArgument(map[i]);
     redirectMessage(info);
     info.setReceiverType(0);
-    emit emitMessage(info);
+    redirectMessage(info);
 }
 void RoomSrv::openDiscussion(int receiver, QVector<int> *list){
     if(receiver==-1){

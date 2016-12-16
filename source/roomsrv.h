@@ -28,7 +28,8 @@ private:
     int ready;
     int id;
     int speakerCount;
-    bool aboutToStart;
+    bool allowJoin;
+    bool allowExit;
     bool inDiscussion;
     QHash<int,int> map;
     QVector<int> audience;

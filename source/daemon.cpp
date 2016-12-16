@@ -19,6 +19,9 @@ void Daemon::incomingConnection(qintptr _descriptr){
     connect(socket,&TcpSock::destroyed,t,&QThread::quit);
     connect(t,&QThread::finished,t,&QThread::deleteLater);
     t->start();
+    Message msg(0,3,1,id,0,0);
+    msg.addArgument(id);
+    deliverMessage(msg);
 }
 bool Daemon::event(QEvent *e){
     qDebug()<<"Got message in Daemon:"<<e->type()<<"\n";
@@ -28,9 +31,7 @@ bool Daemon::event(QEvent *e){
     if(tmp.getType()==0){
         switch(tmp.getSubtype()){
         case 0:
-            if(tmp.getArgument().isEmpty())
-                return false;
-            onNetworkError(tmp.getArgument()[0]);
+            onNetworkError(tmp.getSenderid());
             break;
         case 1:
             if(tmp.getArgument().size()<2)
@@ -51,12 +52,12 @@ bool Daemon::event(QEvent *e){
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 6:
-            if(tmp.getArgument().size()<4)
+            if(tmp.getArgument().size()<5)
                 return false;
             QVector<int> arg;
             for(int i=3;i<tmp.getArgument().size();i++)
                 arg.push_back(tmp.getArgument()[i]);
-            dispatchRoomInfo(tmp.getArgument()[0],tmp.getArgument()[1],tmp.getArgument()[2],arg);
+            dispatchRoomInfo(tmp.getArgument()[0],tmp.getArgument()[1],tmp.getArgument()[2],tmp.getArgument()[3],arg);
         }
     }
     return true;
@@ -112,14 +113,22 @@ void Daemon::deliverMessage(Message msg){
         break;
     }
 }
-void Daemon::dispatchRoomInfo(int id, int num, int ready, QVector<int> players){
+void Daemon::dispatchRoomInfo(int id, int num, int playerinside,int ready,  QVector<int> players){
     qDebug()<<"Dispatching room info....";
     int index=0;
     while(roominfo[index].first!=id)
         index++;
-    if(players.isEmpty())
+    if(players.isEmpty()){
         roominfo.removeAt(index);
-    roominfo[index].second=num-players.size();
+        rooms.removeAt(index);
+    }
+    else{
+        roominfo[index].second.clear();
+        roominfo[index].second.append(num);
+        roominfo[index].second.append(playerinside);
+        roominfo[index].second.append(ready);
+        roominfo[index].second.append(players);
+    }
     for(int i=0;i<players.size();i++)
         map[players[i]]=id;
     QVector<int> diff=(map.values(id).toSet()-players.toList().toSet()).toList().toVector();
@@ -138,12 +147,11 @@ QVector<int> Daemon::genRoomInfo(){
     qDebug()<<"Generating room info...";
     QVector<int> result;
     int count=0;
-    for(int i=0;i<roominfo.size();i++)
-        if(roominfo[i].second!=0){
-            result.push_back(roominfo[i].first);
-            result.push_back(roominfo[i].second);
-            count++;
-        }
+    for(int i=0;i<roominfo.size();i++){
+        result.append(roominfo[i].first);
+        result.append(roominfo[i].second);
+        count++;
+    }
     result.push_front(count);
     return result;
 }

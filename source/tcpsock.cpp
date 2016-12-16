@@ -1,10 +1,11 @@
 #include "tcpsock.h"
 TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
-    :QObject(parent)
+    :QObject(parent),socket(this)
 {
     connect(&socket,static_cast<void(QAbstractSocket::*)(QAbstractSocket::SocketError)>(&QAbstractSocket::error),this,&TcpSock::emitError);
     connect(&socket,&QTcpSocket::readyRead,this,&TcpSock::handleInput);
-    if(!socket.setSocketDescriptor(_sockDescript)){
+    socket.setSocketDescriptor(_sockDescript);
+    if(!socket.waitForConnected()){
         emitError();
         return;
     }
@@ -21,19 +22,27 @@ void TcpSock::emitError(){
     this->deleteLater();
 }
 void TcpSock::handleInput(){
+    qDebug()<<"In TcpSock #"<<id<<":handle input";
     Message message;
-    qDebug()<<"start reading\n";
+    io.startTransaction();
+    qDebug()<<"start reading";
     io>>message;
-    qDebug()<<"finished reading\n";
+    qDebug()<<"finished reading";
+    io.commitTransaction();
     emit emitMessage(message);
 }
 bool TcpSock::event(QEvent *e){
-    if(e->type()!=QEvent::User)
+    qDebug()<<"In TcpSock #"<<id<<":get message"<<e->type();
+    if(e->type()!=(QEvent::Type)2333)
         return QObject::event(e);
     Message tmp=*(Message *)e;
     if(tmp.getReceiverType()==1&&tmp.getReceiverid()==id){
-        io<<tmp;
-        socket.waitForBytesWritten();
+        qDebug()<<"start writing";
+        QByteArray buff;
+        QDataStream out(&buff,QIODevice::WriteOnly);
+        out<<tmp;
+        socket.write(buff);
+        qDebug()<<"finished writing";
         return true;
     }
     return false;

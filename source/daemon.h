@@ -16,12 +16,12 @@ private:
     void addRoom(int,int);
     void deliverMessage(Message);
     void onNetworkError(int);
-    void dispatchRoomInfo(int,int,int,QVector<int>);
+    void dispatchRoomInfo(int,int,int,int,QVector<int>);
     QVector<int> genRoomInfo();
     QVector<QThread*> pool;
     QVector<TcpSock*> connections;
     QVector<RoomSrv*> rooms;
-    QVector<QPair<int,int> > roominfo;
+    QVector<QPair<int,QVector<int> > > roominfo;
     QHash<int,int> map;
 };
 
