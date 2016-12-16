@@ -625,9 +625,9 @@ void runtime::WhisperResult(int seat){
     }
 }
 
-void runtime::OfficerCandidate(QVector<int> candi)
+void runtime::OfficerCandidate(int candi)
 {
-    OfficerCandidateList = candi;
+    OfficerCandidateList.push_back(candi);
 }
 
 void runtime::MedicineResult(bool res){
