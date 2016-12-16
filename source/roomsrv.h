@@ -30,6 +30,7 @@ private:
     int speakerCount;
     bool allowJoin;
     bool allowExit;
+    bool inGame;
     bool inDiscussion;
     QHash<int,int> map;
     QVector<int> audience;

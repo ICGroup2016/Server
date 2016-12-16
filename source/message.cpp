@@ -1,9 +1,9 @@
 #include "message.h"
 
-Message::Message(int t, int st, int rt, int ri,int st,int si)
+Message::Message(int t, int st, int rt, int ri, int sdt, int si)
     :QEvent((QEvent::Type)2333)
 {
-    type=t,subtype=st,receivertype=rt,receiverid=ri,sendertype=st,senderid=si;
+    type=t,subtype=st,receivertype=rt,receiverid=ri,sendertype=sdt,senderid=si;
 }
 void Message::setType(int t){
     type=t;
@@ -41,13 +41,13 @@ int Message::getReceiverType()const{
 void Message::setReceiverType(int t){
     receivertype=t;
 }
-int Message::getSenderType(){
+int Message::getSenderType() const {
     return sendertype;
 }
 void Message::setSenderType(int type){
     sendertype=type;
 }
-int Message::getSenderid(){
+int Message::getSenderid() const {
     return senderid;
 }
 void Message::setSenderid(int id){

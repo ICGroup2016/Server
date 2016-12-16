@@ -701,6 +701,12 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.~QVector();
 }
 
+void runtime::DayVote(int voter, int voted)
+{
+    VoteResults[voter] = voted;
+    VotePoll[voted] += 1;
+}
+
 bool runtime::setExplode(int x)
 {
     if (!Explode){

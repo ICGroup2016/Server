@@ -58,6 +58,16 @@ void RuntimeWrapper::processMessage(Message msg)
                 return;
             rt.OfficerDecide(msg.getArgument()[0],msg.getArgument()[1]);
             break;
+        case 16:
+            if(msg.getArgument().isEmpty())
+                return false;
+            rt.DayVote(msg.getSenderid(),msg.getArgument()[0]);
+        case 18:
+            if(msg.getArgument().isEmpty())
+                return false;
+            rt.HunterKill(msg.getArgument()[0]);
+        case 19:
+            rt.setExplode(msg.getSenderid());
         }
         stopWaitForPlayer(msg.getSenderid());
     }
