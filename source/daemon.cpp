@@ -34,14 +34,12 @@ bool Daemon::event(QEvent *e){
             onNetworkError(tmp.getSenderid());
             break;
         case 1:
-            if(tmp.getArgument().size()<2)
-                return false;
-            addRoom(tmp.getArgument()[0],tmp.getArgument()[1]);
-            break;
-        case 2:
             if(tmp.getArgument().isEmpty())
                 return false;
-            Message msg(0,2,1,tmp.getArgument()[0]);
+            addRoom(tmp.getArgument()[0],tmp.getSenderid());
+            break;
+        case 2:
+            Message msg(0,2,1,tmp.getSenderid());
             msg.setArgument(genRoomInfo());
             deliverMessage(msg);
         }
