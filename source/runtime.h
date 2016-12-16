@@ -70,7 +70,7 @@ private:
     QVector <int> getAllWolfs();        //返回存活狼座位号列表
     void MakeMessage(int t, int subt, int recid, QVector<int> arg, QString det = "");  //制作消息并发送
 public:
-    runtime(int num);  //构造函数，确定总人数、狼人人数
+    runtime(QObject * parent = 0,int num);  //构造函数，确定总人数、狼人人数
     void Game();    //游戏全过程
     void WhisperResult(int seat);  //添加狼人讨论结果
     void OfficerCandidate(QVector<int> candi);   //玩家是否参选警长
