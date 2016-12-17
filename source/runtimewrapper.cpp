@@ -6,7 +6,8 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
     isWaiting=false;
     roomID=id;
     rt.moveToThread(this);
-    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage);
+    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage,Qt::DirectConnection);
+    QObject::connect(&rt,&runtime::Wait,this,&RuntimeWrapper::waitForPlayer,Qt::DirectConnection);
 }
 void RuntimeWrapper::run()
 {
@@ -80,12 +81,16 @@ void RuntimeWrapper::waitForPlayer(int i){
         waitList.clear();
         waitList.append(i);
     }
-    waitForResponse.wait(&waitLock);
+    if(!waitList.isEmpty())
+        waitForResponse.wait(&waitLock);
     waitLock.unlock();
 }
 void RuntimeWrapper::processRuntimeMessage(Message msg){
-    if(msg.getSubtype()==5)
+    if(msg.getSubtype()==5){
+        waitLock.lock();
         waitList=msg.getArgument();
+        waitLock.unlock();
+    }
     emit emitMessage(msg);
 }
 void RuntimeWrapper::stopWaitForPlayer(int i){

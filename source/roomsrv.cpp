@@ -57,6 +57,9 @@ bool RoomSrv::event(QEvent *e){
             if(inDiscussion&&tmp.getArgument()[0]==0){
                 tmp.setReceiverType(1);
                 tmp.setReceiverid(-2);
+                QVector<int> arg;
+                arg.append(tmp.getSenderid());
+                tmp.setArgument(arg);
                 redirectMessage(tmp);
             }
             else if(tmp.getArgument()[0]==1){
@@ -88,6 +91,8 @@ void RoomSrv::processRuntimeMessage(Message msg){
     }
     else if(msg.getType()==2){
         if(msg.getSubtype()==5){
+            inGame=false;
+            allowExit=true;
             QVector<int> players=map.keys().toVector();
             openDiscussion(0,&players);
         }
