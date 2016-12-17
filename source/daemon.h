@@ -15,7 +15,7 @@ protected:
 private:
     void addRoom(int,int);
     void deliverMessage(Message);
-    void onNetworkError(int);
+    void onNetworkError(Message);
     void dispatchRoomInfo(int,int,int,int,QVector<int>);
     QVector<int> genRoomInfo();
     QVector<QThread*> pool;
