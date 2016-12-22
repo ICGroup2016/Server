@@ -29,10 +29,6 @@ void runtime::Assign()
     QVector<bool> occupied;
     for (int i = 0;i<player_num;i++) occupied.push_back(false);
     for (int i = 0; i<player_num; i++){
-        temp.push_back(i);
-        s = QString("您的座位号为%1号").arg(i);
-        MakeMessage(1,0,i,temp,s);
-        temp.clear();
         do{
             r=rand()%player_num;
         }while(occupied.at(r));
