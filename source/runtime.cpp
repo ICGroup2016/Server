@@ -671,7 +671,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     QVector<int> temp;
     temp.clear();
     VoteResults[OfficerNo] = voted;
-    VotePoll[voted]++;
+    VotePoll[voted]+=3;
     int i = OfficerNo;
     if (direction){
         MakeMessage(1,10,-1,temp,"从警长右侧开始发言");
@@ -700,7 +700,7 @@ void runtime::OfficerDecide(int voted, bool direction)
 void runtime::DayVote(int voter, int voted)
 {
     VoteResults[voter] = voted;
-    VotePoll[voted] += 1;
+    VotePoll[voted]+=2;
 }
 
 bool runtime::setExplode(int x)
