@@ -33,7 +33,7 @@ bool RoomSrv::event(QEvent *e){
             break;
         case 1:
             ready++;
-            sendRoomInfo();
+            sendRoomInfo(-1);
             if(ready==num)
                 startGame();
             break;
@@ -43,13 +43,16 @@ bool RoomSrv::event(QEvent *e){
             else{
                 ready--;
                 returnResult(tmp,true);
-                sendRoomInfo();
+                sendRoomInfo(-1);
             }
             break;
         case 3:
             if(tmp.getArgument().isEmpty())
                 return false;
             returnResult(tmp,removePlayer(tmp.getArgument()[0],tmp.getSenderid()));
+            break;
+        case 6:
+            sendRoomInfo(tmp.getSenderid());
             break;
         case 7:
             if(tmp.getArgument().isEmpty())
@@ -106,7 +109,7 @@ bool RoomSrv::addPlayer(int id){
     map.insert(i,id);
     if(map.size()==num)
         allowJoin=false;
-    sendRoomInfo();
+    sendRoomInfo(-1);
     return true;
 }
 bool RoomSrv::removePlayer(bool force, int id){
@@ -122,7 +125,7 @@ bool RoomSrv::removePlayer(bool force, int id){
         allowJoin=false;
     else if(!inGame)
         allowJoin=true;
-    sendRoomInfo();
+    sendRoomInfo(-1);
     return true;
 }
 void RoomSrv::startGame(){
@@ -161,13 +164,15 @@ void RoomSrv::redirectMessage(Message msg){
     else
         emit emitMessage(msg);
 }
-void RoomSrv::sendRoomInfo(){
-    Message info(2,6,1,-1);
+void RoomSrv::sendRoomInfo(int receiver){
+    Message info(2,6,1,receiver);
     info.addArgument(num);
     info.addArgument(ready);
     for(int i=0;i<num;i++)
-        if(map.contains(i))
+        if(map.contains(i)){
+            info.addArgument(i);
             info.addArgument(map[i]);
+        }
     redirectMessage(info);
     info.setReceiverType(0);
     redirectMessage(info);
