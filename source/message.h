@@ -5,7 +5,7 @@
 class Message:public QEvent
 {
 public:
-    Message(int t=0,int st=0,int rt=0,int ri=0,int st=0,int si=0);
+    Message(int t=0,int st=0,int rt=0,int ri=0,int stype=0,int si=0);
     void setType(int t);
     int getType()const;
     void setSubtype(int t);

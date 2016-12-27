@@ -31,17 +31,15 @@ bool Daemon::event(QEvent *e){
     if(tmp.getType()==0){
         switch(tmp.getSubtype()){
         case 0:
-            onNetworkError(tmp.getSenderid());
+            onNetworkError(tmp);
             break;
         case 1:
-            if(tmp.getArgument().size()<2)
-                return false;
-            addRoom(tmp.getArgument()[0],tmp.getArgument()[1]);
-            break;
-        case 2:
             if(tmp.getArgument().isEmpty())
                 return false;
-            Message msg(0,2,1,tmp.getArgument()[0]);
+            addRoom(tmp.getArgument()[0],tmp.getSenderid());
+            break;
+        case 2:
+            Message msg(0,2,1,tmp.getSenderid());
             msg.setArgument(genRoomInfo());
             deliverMessage(msg);
         }
@@ -62,8 +60,9 @@ bool Daemon::event(QEvent *e){
     }
     return true;
 }
-void Daemon::onNetworkError(int id){
-    qDebug()<<id<<" network error!\n";
+void Daemon::onNetworkError(Message msg){
+    int id=msg.getSenderid();
+    qDebug()<<id<<" network error:"<<msg.getDetail()<<"!\n";
     for(int i=0;i<connections.size();i++)
         if(connections[i]->getID()==id)
             connections.removeAt(i);
