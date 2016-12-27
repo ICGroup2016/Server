@@ -42,7 +42,8 @@ bool RuntimeWrapper::processMessage(Message msg)
         case 11:
             if(msg.getArgument().isEmpty())
                 return false;
-            rt.OfficerCandidate(msg.getArgument()[0]);
+            if(msg.getArgument()[0])
+                rt.OfficerCandidate(msg.getSenderid());
             break;
         case 13:
             if(msg.getArgument().size()<2)
