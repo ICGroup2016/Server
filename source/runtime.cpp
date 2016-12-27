@@ -169,7 +169,7 @@ void runtime::Game()
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
         //设置狼人可发言
-        MakeMessage(1,12,0,WolfList);
+        MakeMessage(1,5,0,WolfList);
 
         emit Wait(-1);
 
