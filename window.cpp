@@ -10,7 +10,7 @@ window::window(QWidget *parent) :
 
     QLabel *permanent=new QLabel(this);
     permanent->setFrameStyle(QFrame::Box|QFrame::Sunken);
-    permanent->setText("欢迎来到游戏大厅");
+    permanent->setText("欢迎来到Monitor");
     ui->statusBar->addPermanentWidget(permanent);
 
 }
@@ -37,16 +37,13 @@ void window::removeall(){
     ui->playerWidget->setRowCount(0);
 }
 
-void window::addplayer(QString id,QString number){
+void window::addplayer(QString id){
     QTableWidgetItem*idd=new QTableWidgetItem(id);
-    QTableWidgetItem*num=new QTableWidgetItem(number);
 
     idd->setTextAlignment(Qt::AlignCenter);
-    num->setTextAlignment(Qt::AlignCenter);
 
     ui->playerWidget->insertRow(0);
     ui->playerWidget->setItem(0,0,idd);
-    ui->playerWidget->setItem(0,1,num);
 }
 
 void window::setup(QString ip, QString port){

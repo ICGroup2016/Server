@@ -26,6 +26,6 @@ void gui::setup(QString ip, QString port){
     w.setup(ip,port);
 }
 
-void gui::addplayer(QString id, QString abc){
-    w.addplayer(id,abc);
+void gui::addplayer(QString id){
+    w.addplayer(id);
 }
