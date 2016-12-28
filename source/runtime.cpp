@@ -113,6 +113,7 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
 runtime::runtime(QObject * parent,int num)
     :QObject(parent)
 {
+    qDebug()<<"In runtime()";
     player_num = num;
     Poison = true;
     Medicine = true;
@@ -127,7 +128,7 @@ runtime::runtime(QObject * parent,int num)
     for (int i = 0; i < num; i++){
         p = new player();
         seats.push_back(p);
-        PlayerOnline[i] = true;
+        PlayerOnline.push_back(true);
     }
 }
 

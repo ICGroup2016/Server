@@ -91,6 +91,11 @@ void RoomSrv::processRuntimeMessage(Message msg){
         }
         else if(msg.getSubtype()==12)
             openDiscussion();
+        else if(msg.getSubtype()==19)
+            if(msg.getArgument()[0]){
+                if(inDiscussion)
+                    speakerCount=0;
+            }
     }
     else if(msg.getType()==2){
         if(msg.getSubtype()==5){
@@ -109,6 +114,9 @@ bool RoomSrv::addPlayer(int id){
     map.insert(i,id);
     if(map.size()==num)
         allowJoin=false;
+    Message msg(2,0,1,id,2,this->id);
+    msg.addArgument(1);
+    emit emitMessage(msg);
     sendRoomInfo(-1);
     return true;
 }

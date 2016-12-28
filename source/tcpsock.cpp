@@ -15,7 +15,6 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
     qDebug()<<_sockDescript<<"connected\n";
 }
 void TcpSock::emitError(){
-    this->deleteLater();
     Message message(0,0,0,0,1,id);
     message.setDetail(socket.errorString());
     emit emitMessage(message);

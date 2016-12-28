@@ -75,19 +75,27 @@ void Daemon::onNetworkError(Message msg){
     map.remove(id);
 }
 void Daemon::addRoom(int num, int own){
+    qDebug()<<"Adding room...";
     int id=0;
     while(map.key(id,-1)!=-1)
         id++;
+    qDebug()<<"1";
     RoomSrv *room=new RoomSrv(0,num,id);
+    qDebug()<<"2";
     QThread *t=new QThread();
+    qDebug()<<"3";
     room->moveToThread(t);
-    rooms.push_back(room);
-    pool.push_back(t);
+    qDebug()<<"4";
+    rooms.append(room);
+    qDebug()<<"5";
+    pool.append(t);
+    qDebug()<<"6";
     t->start();
+    qDebug()<<"7";
     connect(room,&RoomSrv::emitMessage,this,&Daemon::deliverMessage);
     connect(room,&RoomSrv::destroyed,t,&QThread::quit);
     connect(t,&QThread::finished,t,&QThread::deleteLater);
-    Message msg(2,3,2,id);
+    Message msg(2,0,2,id);
     msg.addArgument(own);
     deliverMessage(msg);
     qDebug()<<"Room #"<<id<<"added";
