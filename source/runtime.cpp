@@ -127,7 +127,7 @@ runtime::runtime(QObject * parent,int num)
     for (int i = 0; i < num; i++){
         p = new player();
         seats.push_back(p);
-        PlayerOnline[i] = true;
+        PlayerOnline.push_back(true);
     }
 }
 
