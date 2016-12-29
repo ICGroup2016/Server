@@ -12,7 +12,7 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
     io.setDevice(&socket);
     id=_id;
     name=_name;
-    qDebug()<<_sockDescript<<"connected\n";
+    qDebug()<<id<<"connected\n";
 }
 void TcpSock::emitError(){
     Message message(0,0,0,0,1,id);
@@ -21,30 +21,24 @@ void TcpSock::emitError(){
     this->deleteLater();
 }
 void TcpSock::handleInput(){
-    qDebug()<<"In TcpSock #"<<id<<":handle input";
     Message message;
     io.startTransaction();
-    qDebug()<<"start reading";
     io>>message;
-    qDebug()<<"finished reading";
     io.commitTransaction();
+    message.setSenderid(id);
     emit emitMessage(message);
 }
 bool TcpSock::event(QEvent *e){
-    qDebug()<<"In TcpSock #"<<id<<":get message"<<e->type();
     if(e->type()!=(QEvent::Type)2333)
         return QObject::event(e);
     Message tmp=*(Message *)e;
-    if(tmp.getReceiverType()==1&&tmp.getReceiverid()==id){
-        qDebug()<<"start writing";
-        QByteArray buff;
-        QDataStream out(&buff,QIODevice::WriteOnly);
-        out<<tmp;
-        socket.write(buff);
-        qDebug()<<"finished writing";
-        return true;
-    }
-    return false;
+    qDebug()<<"Sending message to"<<tmp.getReceiverid();
+    qDebug()<<"Type:"<<tmp.getType()<<"\tSubType"<<tmp.getSubtype();
+    QByteArray buff;
+    QDataStream out(&buff,QIODevice::WriteOnly);
+    out<<tmp;
+    socket.write(buff);
+    return true;
 }
 int TcpSock::getID(){
     return id;

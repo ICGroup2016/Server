@@ -118,6 +118,7 @@ bool RoomSrv::addPlayer(int id){
     msg.addArgument(1);
     emit emitMessage(msg);
     sendRoomInfo(-1);
+    qDebug()<<"player "<<id<<" added";
     return true;
 }
 bool RoomSrv::removePlayer(bool force, int id){
@@ -173,8 +174,10 @@ void RoomSrv::redirectMessage(Message msg){
         emit emitMessage(msg);
 }
 void RoomSrv::sendRoomInfo(int receiver){
+    qDebug()<<"In sendRoomInfo..";
     Message info(2,6,1,receiver);
     info.addArgument(num);
+    info.addArgument(map.size());
     info.addArgument(ready);
     for(int i=0;i<num;i++)
         if(map.contains(i)){

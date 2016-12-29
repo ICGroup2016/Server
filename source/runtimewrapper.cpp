@@ -5,7 +5,6 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
 {
     isWaiting=false;
     roomID=id;
-    rt.moveToThread(this);
     QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage,Qt::DirectConnection);
     QObject::connect(&rt,&runtime::Wait,this,&RuntimeWrapper::waitForPlayer,Qt::DirectConnection);
 }

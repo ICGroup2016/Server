@@ -4,7 +4,22 @@ Daemon::Daemon(QObject *parent)
     :QTcpServer(parent)
 {
     if(this->listen())
-        qDebug()<<tr("The server is listening on %1 ip and %2 port").arg(QHostAddress(QHostAddress::LocalHost).toString()).arg(this->serverPort());
+    {
+        QString ipAddress;
+            QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+            // use the first non-localhost IPv4 address
+            for (int i = 0; i < ipAddressesList.size(); ++i) {
+                if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+                    ipAddressesList.at(i).toIPv4Address()) {
+                    ipAddress = ipAddressesList.at(i).toString();
+                    break;
+                }
+            }
+            // if we did not find one, use IPv4 localhost
+            if (ipAddress.isEmpty())
+                ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
+            qDebug()<<tr("The server is running on %1 ip and %2 port").arg(ipAddress).arg(this->serverPort());
+    }
 }
 void Daemon::incomingConnection(qintptr _descriptr){
     int id=0;
@@ -24,7 +39,6 @@ void Daemon::incomingConnection(qintptr _descriptr){
     deliverMessage(msg);
 }
 bool Daemon::event(QEvent *e){
-    qDebug()<<"Got message in Daemon:"<<e->type()<<"\n";
     if(e->type()!=(QEvent::Type)2333)
         return QTcpServer::event(e);
     Message tmp=*(Message *)e;
@@ -55,7 +69,7 @@ bool Daemon::event(QEvent *e){
             QVector<int> arg;
             for(int i=3;i<tmp.getArgument().size();i++)
                 arg.push_back(tmp.getArgument()[i]);
-            dispatchRoomInfo(tmp.getArgument()[0],tmp.getArgument()[1],tmp.getArgument()[2],tmp.getArgument()[3],arg);
+            dispatchRoomInfo(tmp.getSenderid(),tmp.getArgument()[0],tmp.getArgument()[1],tmp.getArgument()[2],arg);
         }
     }
     return true;
@@ -79,29 +93,20 @@ void Daemon::addRoom(int num, int own){
     int id=0;
     while(map.key(id,-1)!=-1)
         id++;
-    qDebug()<<"1";
-    RoomSrv *room=new RoomSrv(0,num,id);
-    qDebug()<<"2";
+    RoomSrv *room=new RoomSrv(nullptr,num,id);
     QThread *t=new QThread();
-    qDebug()<<"3";
     room->moveToThread(t);
-    qDebug()<<"4";
     rooms.append(room);
-    qDebug()<<"5";
     pool.append(t);
-    qDebug()<<"6";
     t->start();
-    qDebug()<<"7";
     connect(room,&RoomSrv::emitMessage,this,&Daemon::deliverMessage);
     connect(room,&RoomSrv::destroyed,t,&QThread::quit);
     connect(t,&QThread::finished,t,&QThread::deleteLater);
-    Message msg(2,0,2,id);
-    msg.addArgument(own);
+    Message msg(2,0,2,id,1,own);
     deliverMessage(msg);
     qDebug()<<"Room #"<<id<<"added";
 }
 void Daemon::deliverMessage(Message msg){
-    qDebug()<<"Delivering message....";
     Message *tmp=new Message();
     *tmp=msg;
     switch(msg.getReceiverType()){
@@ -123,24 +128,31 @@ void Daemon::deliverMessage(Message msg){
 void Daemon::dispatchRoomInfo(int id, int num, int playerinside,int ready,  QVector<int> players){
     qDebug()<<"Dispatching room info....";
     int index=0;
-    while(roominfo[index].first!=id)
+    while(index<roominfo.size()&&roominfo[index].first!=id)
         index++;
     if(players.isEmpty()){
         roominfo.removeAt(index);
         rooms.removeAt(index);
     }
-    else{
+    else if(index<roominfo.size()){
         roominfo[index].second.clear();
         roominfo[index].second.append(num);
         roominfo[index].second.append(playerinside);
-        roominfo[index].second.append(ready);
-        roominfo[index].second.append(players);
+    }
+    else{
+        QPair<int,QVector<int>> tmp;
+        tmp.first=id;
+        tmp.second.append(num);
+        tmp.second.append(playerinside);
+        tmp.second.append(ready);
+        roominfo.append(tmp);
     }
     for(int i=0;i<players.size();i++)
         map[players[i]]=id;
     QVector<int> diff=(map.values(id).toSet()-players.toList().toSet()).toList().toVector();
     for(int i=0;i<diff.size();i++)
-        map[diff[i]]=-1;
+        if(map.contains(diff[i]))
+            map[diff[i]]=-1;
     QVector<int> info=genRoomInfo();
     Message msg(0,2,1);
     msg.setArgument(info);
