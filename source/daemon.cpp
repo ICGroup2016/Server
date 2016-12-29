@@ -64,7 +64,7 @@ bool Daemon::event(QEvent *e){
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 6:
-            if(tmp.getArgument().size()<5)
+            if(tmp.getArgument().size()<4)
                 return false;
             QVector<int> arg;
             for(int i=3;i<tmp.getArgument().size();i++)

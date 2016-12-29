@@ -130,8 +130,10 @@ bool RoomSrv::removePlayer(bool force, int id){
     map.remove(map.key(id));
     if(inGame)
         rt.playerOffline(id);
-    if(map.isEmpty())
+    if(map.isEmpty()){
         allowJoin=false;
+        this->deleteLater();
+    }
     else if(!inGame)
         allowJoin=true;
     sendRoomInfo(-1);
@@ -187,6 +189,7 @@ void RoomSrv::sendRoomInfo(int receiver){
     redirectMessage(info);
     info.setReceiverType(0);
     redirectMessage(info);
+    qDebug()<<"Out sendRoomInfo...";
 }
 void RoomSrv::openDiscussion(int receiver, QVector<int> *list){
     if(receiver==-1){

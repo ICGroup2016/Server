@@ -38,6 +38,10 @@ bool TcpSock::event(QEvent *e){
     QDataStream out(&buff,QIODevice::WriteOnly);
     out<<tmp;
     socket.write(buff);
+    if(socket.waitForBytesWritten())
+        qDebug()<<"Message sent";
+    else
+        qDebug()<<"Message failed";
     return true;
 }
 int TcpSock::getID(){
