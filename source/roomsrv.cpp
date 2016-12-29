@@ -10,6 +10,7 @@ RoomSrv::RoomSrv(QObject *parent, int _num, int _id)
     id=_id;
     allowJoin=true;
     allowExit=true;
+    inGame=false;
 }
 void RoomSrv::returnResult(Message msg, bool res){
     Message response(msg.getType(),msg.getSubtype(),msg.getSenderType(),msg.getSenderid(),msg.getReceiverType(),msg.getReceiverid());
@@ -124,9 +125,6 @@ bool RoomSrv::addPlayer(int id){
 bool RoomSrv::removePlayer(bool force, int id){
     if(!allowExit&&!force)
         return false;
-    Message tmp(2,8);
-    tmp.addArgument(0);
-    emit emitMessage(tmp);
     map.remove(map.key(id));
     if(inGame)
         rt.playerOffline(id);
@@ -136,6 +134,11 @@ bool RoomSrv::removePlayer(bool force, int id){
     }
     else if(!inGame)
         allowJoin=true;
+    if(!force){
+        Message msg(2,3,1,id,2,this->id);
+        msg.addArgument(1);
+        emit emitMessage(msg);
+    }
     sendRoomInfo(-1);
     return true;
 }
