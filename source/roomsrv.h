@@ -20,7 +20,7 @@ private:
     bool addPlayer(int);
     bool removePlayer(bool force=false, int i=0);
     void returnResult(Message,bool);
-    void sendRoomInfo();
+    void sendRoomInfo(int);
     void startGame();
     void openDiscussion(int receiver=-1, QVector<int> *list=nullptr);
     bool event(QEvent *);

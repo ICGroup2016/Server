@@ -5,7 +5,6 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
 {
     isWaiting=false;
     roomID=id;
-    rt.moveToThread(this);
     QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage,Qt::DirectConnection);
     QObject::connect(&rt,&runtime::Wait,this,&RuntimeWrapper::waitForPlayer,Qt::DirectConnection);
 }
@@ -42,7 +41,8 @@ bool RuntimeWrapper::processMessage(Message msg)
         case 11:
             if(msg.getArgument().isEmpty())
                 return false;
-            rt.OfficerCandidate(msg.getArgument()[0]);
+            if(msg.getArgument()[0])
+                rt.OfficerCandidate(msg.getSenderid());
             break;
         case 13:
             if(msg.getArgument().size()<2)
@@ -68,7 +68,7 @@ bool RuntimeWrapper::processMessage(Message msg)
                 return false;
             rt.HunterKill(msg.getArgument()[0]);
         case 19:
-            rt.setExplode(msg.getSenderid());
+            onExplode(msg.getSenderid());
         }
         stopWaitForPlayer(msg.getSenderid());
         return true;
@@ -107,4 +107,16 @@ void RuntimeWrapper::stopWaitForPlayer(int i){
 void RuntimeWrapper::playerOffline(int i){
     rt.RemovePlayer(i);
     stopWaitForPlayer(i);
+}
+void RuntimeWrapper::onExplode(int seat){
+    if(!rt.setExplode(seat)){
+        Message msg(1,19,1,seat);
+        msg.addArgument(0);
+        emit emitMessage(msg);
+    }
+    else{
+        Message msg(1,19,1,-1);
+        msg.addArgument(1);
+        emit emitMessage(msg);
+    }
 }

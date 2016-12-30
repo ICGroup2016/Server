@@ -19,6 +19,7 @@ private:
     void waitForPlayer(int);
     void removePlayer(int);
     void processRuntimeMessage(Message);
+    void onExplode(int);
     int roomID;
     bool isWaiting;
     runtime rt;
