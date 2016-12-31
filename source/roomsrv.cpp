@@ -4,7 +4,7 @@ RoomSrv::RoomSrv(QObject *parent, int _num, int _id)
     : QObject(parent),rt(this,_num,_id)
 {
     connect(&rt,&RuntimeWrapper::emitMessage,this,&RoomSrv::processRuntimeMessage);
-    connect(&rt,&RuntimeWrapper::finished,&rt,&RuntimeWrapper::deleteLater);
+    //connect(&rt,&RuntimeWrapper::finished,&rt,&RuntimeWrapper::deleteLater);
     num=_num;
     ready=0;
     id=_id;

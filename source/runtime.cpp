@@ -25,14 +25,14 @@ void runtime::Assign()
     int r;
     QString s;
     QVector<int> temp;
-    temp.clear();
-    QVector<bool> occupied;
+    QVector<int> occupied;
     for (int i = 0;i<player_num;i++) occupied.push_back(false);
     for (int i = 0; i<player_num; i++){
         do{
             r=rand()%player_num;
         }while(occupied.at(r));
         occupied[r] = true;
+        temp.clear();
         switch (r) {
         case 0:
             temp.push_back(3);
@@ -75,9 +75,6 @@ void runtime::Assign()
             break;
         }
     }
-    occupied.~QVector();
-    temp.~QVector();
-    s.~QString();
 }
 
 QVector<int> runtime::getAlivePlayerList(bool IsDay)
@@ -617,10 +614,6 @@ void runtime::Game()
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
     }
-
-    temp.~QVector();
-    s.~QString();
-    VoteProcesser.~QVector();
 }
 
 void runtime::WhisperResult(int seat){
@@ -670,7 +663,6 @@ void runtime::OfficerPass(int receiver)
     }else{
         MakeMessage(1,10,-1,temp,QString("警长变为%1号玩家").arg(receiver+1));
     }
-    temp.~QVector();
 }
 
 void runtime::OfficerDecide(int voted, bool direction)
@@ -701,7 +693,6 @@ void runtime::OfficerDecide(int voted, bool direction)
             i = (i - 1 + player_num) % player_num;
         }while(i != OfficerNo);
     }
-    temp.~QVector();
 }
 
 void runtime::DayVote(int voter, int voted)
@@ -730,7 +721,6 @@ void runtime::HunterKill(int x)
         MakeMessage(1,10,-1,temp,QString("%1号猎人死亡开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
     }
-    temp.~QVector();
 }
 
 void runtime::RemovePlayer(int x)
@@ -743,5 +733,4 @@ void runtime::RemovePlayer(int x)
         OfficerNo = -1;
     }
     PlayerOnline[x] = false;
-    temp.~QVector();
 }
