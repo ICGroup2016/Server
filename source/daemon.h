@@ -16,7 +16,7 @@ private:
     void addRoom(int,int);
     void deliverMessage(Message);
     void onNetworkError(Message);
-    void dispatchRoomInfo(int,int,int,int,QVector<int>);
+    void announceRoomInfo(int);
     QVector<int> genRoomInfo();
     QVector<QThread*> pool;
     QVector<TcpSock*> connections;

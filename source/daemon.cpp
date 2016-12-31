@@ -30,10 +30,10 @@ void Daemon::incomingConnection(qintptr _descriptr){
     socket->moveToThread(t);
     connections.push_back(socket);
     pool.push_back(t);
+    t->start();
     connect(socket,&TcpSock::emitMessage,this,&Daemon::deliverMessage);
     connect(socket,&TcpSock::destroyed,t,&QThread::quit);
     connect(t,&QThread::finished,t,&QThread::deleteLater);
-    t->start();
     Message msg(0,3,1,id,0,0);
     msg.addArgument(id);
     deliverMessage(msg);
@@ -50,26 +50,41 @@ bool Daemon::event(QEvent *e){
         case 1:
             if(tmp.getArgument().isEmpty())
                 return false;
-            addRoom(tmp.getArgument()[0],tmp.getSenderid());
+            if(map[tmp.getSenderid()]==-1)
+                addRoom(tmp.getArgument()[0],tmp.getSenderid());
             break;
         case 2:
-            Message msg(0,2,1,tmp.getSenderid());
-            msg.setArgument(genRoomInfo());
-            deliverMessage(msg);
-        }
-    }
-    else if(tmp.getType()==1){
-
-    }
-    else if(tmp.getType()==2){
-        switch(tmp.getSubtype()){
-        case 6:
-            if(tmp.getArgument().size()<4)
+            announceRoomInfo(tmp.getSenderid());
+            break;
+        case 4:
+            if(tmp.getArgument().size()<2)
                 return false;
-            QVector<int> arg;
-            for(int i=3;i<tmp.getArgument().size();i++)
-                arg.push_back(tmp.getArgument()[i]);
-            dispatchRoomInfo(tmp.getSenderid(),tmp.getArgument()[0],tmp.getArgument()[1],tmp.getArgument()[2],arg);
+            if(tmp.getArgument()[1]){
+                map[tmp.getArgument()[0]]=-1;
+                for(int i=0;i<roominfo.size();i++)
+                    if(roominfo[i].first==tmp.getSenderid()){
+                        roominfo[i].second[1]--;
+                        if(roominfo[i].second[1]==0){
+                            roominfo.removeAt(i);
+                            for(int i=0;i<rooms.size();i++)
+                                if(!rooms[i]||rooms[i]->getID()==tmp.getSenderid()){
+                                    rooms.removeAt(i);
+                                    break;
+                                }
+                        }
+                        break;
+                    }
+            }
+            else{
+                map[tmp.getArgument()[0]]=tmp.getSenderid();
+                for(int i=0;i<roominfo.size();i++)
+                    if(roominfo[i].first==tmp.getSenderid()){
+                        roominfo[i].second[1]++;
+                        break;
+                    }
+            }
+            announceRoomInfo(-1);
+            break;
         }
     }
     return true;
@@ -78,8 +93,10 @@ void Daemon::onNetworkError(Message msg){
     int id=msg.getSenderid();
     qDebug()<<id<<" network error:"<<msg.getDetail()<<"!\n";
     for(int i=0;i<connections.size();i++)
-        if(connections[i]->getID()==id)
+        if(!connections[i]||connections[i]->getID()==id){
             connections.removeAt(i);
+            qDebug()<<i<<"deleted";
+        }
     if(map[id]!=-1){
         Message msg(2,3,2,map[id]);
         msg.addArgument(id);
@@ -102,6 +119,11 @@ void Daemon::addRoom(int num, int own){
     connect(room,&RoomSrv::emitMessage,this,&Daemon::deliverMessage);
     connect(room,&RoomSrv::destroyed,t,&QThread::quit);
     connect(t,&QThread::finished,t,&QThread::deleteLater);
+    QPair<int,QVector<int>> info;
+    info.first=id;
+    info.second.append(num);
+    info.second.append(0);
+    roominfo.append(info);
     Message msg(2,0,2,id,1,own);
     deliverMessage(msg);
     qDebug()<<"Room #"<<id<<"added";
@@ -124,46 +146,10 @@ void Daemon::deliverMessage(Message msg){
                 QCoreApplication::postEvent(rooms[i],tmp);
         break;
     }
-}
-void Daemon::dispatchRoomInfo(int id, int num, int playerinside,int ready,  QVector<int> players){
-    qDebug()<<"Dispatching room info....";
-    int index=0;
-    while(index<roominfo.size()&&roominfo[index].first!=id)
-        index++;
-    if(players.isEmpty()){
-        roominfo.removeAt(index);
-        rooms.removeAt(index);
-    }
-    else if(index<roominfo.size()){
-        roominfo[index].second.clear();
-        roominfo[index].second.append(num);
-        roominfo[index].second.append(playerinside);
-    }
-    else{
-        QPair<int,QVector<int>> tmp;
-        tmp.first=id;
-        tmp.second.append(num);
-        tmp.second.append(playerinside);
-        tmp.second.append(ready);
-        roominfo.append(tmp);
-    }
-    for(int i=0;i<players.size();i++)
-        map[players[i]]=id;
-    QVector<int> diff=(map.values(id).toSet()-players.toList().toSet()).toList().toVector();
-    for(int i=0;i<diff.size();i++)
-        if(map.contains(diff[i]))
-            map[diff[i]]=-1;
-    QVector<int> info=genRoomInfo();
-    Message msg(0,2,1);
-    msg.setArgument(info);
-    for(int i=0;i<connections.size();i++)
-        if(map[connections[i]->getID()]==-1){
-            msg.setReceiverid(connections[i]->getID());
-            deliverMessage(msg);
-        }
+    QCoreApplication::sendPostedEvents();
 }
 QVector<int> Daemon::genRoomInfo(){
-    qDebug()<<"Generating room info...";
+    qDebug()<<"in genRoomInfo...";
     QVector<int> result;
     int count=0;
     for(int i=0;i<roominfo.size();i++){
@@ -172,5 +158,19 @@ QVector<int> Daemon::genRoomInfo(){
         count++;
     }
     result.push_front(count);
+    qDebug()<<"out genRoomInfo....";
     return result;
+}
+void Daemon::announceRoomInfo(int receiver){
+    Message msg(0,2,1,receiver,0,0);
+    msg.setArgument(genRoomInfo());
+    if(receiver!=-1){
+        deliverMessage(msg);
+        return;
+    }
+    for(int i=0;i<connections.size();i++)
+        if(connections[i]){
+            msg.setReceiverid(connections[i]->getID());
+            deliverMessage(msg);
+        }
 }
