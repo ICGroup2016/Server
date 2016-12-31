@@ -13,9 +13,9 @@ RoomSrv::RoomSrv(QObject *parent, int _num, int _id)
     inGame=false;
 }
 void RoomSrv::returnResult(Message msg, bool res){
-    Message response(msg.getType(),msg.getSubtype(),msg.getSenderType(),msg.getSenderid(),msg.getReceiverType(),msg.getReceiverid());
+    Message response(msg.getType(),msg.getSubtype(),msg.getSenderType(),msg.getSenderid(),2,this->id);
     response.addArgument(res);
-    emit emitMessage(res);
+    emit emitMessage(response);
 }
 bool RoomSrv::event(QEvent *e){
     if(e->type()!=(QEvent::Type)2333)
@@ -30,7 +30,7 @@ bool RoomSrv::event(QEvent *e){
     else if(tmp.getType()==2){
         switch(tmp.getSubtype()){
         case 0:
-            returnResult(tmp,addPlayer(tmp.getSenderid()));
+            addPlayer(tmp.getSenderid());
             break;
         case 1:
             ready++;
@@ -50,7 +50,7 @@ bool RoomSrv::event(QEvent *e){
         case 3:
             if(tmp.getArgument().isEmpty())
                 return false;
-            returnResult(tmp,removePlayer(tmp.getArgument()[0],tmp.getSenderid()));
+            removePlayer(tmp.getArgument()[0],tmp.getSenderid());
             break;
         case 6:
             sendRoomInfo(tmp.getSenderid());
@@ -115,8 +115,12 @@ bool RoomSrv::addPlayer(int id){
     map.insert(i,id);
     if(map.size()==num)
         allowJoin=false;
-    Message msg(2,0,1,id,2,this->id);
-    msg.addArgument(1);
+    Message feedback(2,0,1,id,2,this->id);
+    feedback.addArgument(1);
+    emit emitMessage(feedback);
+    Message msg(0,4,0,0,2,this->id);
+    msg.addArgument(id);
+    msg.addArgument(0);
     emit emitMessage(msg);
     sendRoomInfo(-1);
     qDebug()<<"player "<<id<<" added";
@@ -128,18 +132,20 @@ bool RoomSrv::removePlayer(bool force, int id){
     map.remove(map.key(id));
     if(inGame)
         rt.playerOffline(id);
+    Message feedback(2,3,1,id,2,this->id);
+    feedback.addArgument(1);
+    emit emitMessage(feedback);
+    Message msg(0,4,0,0,2,this->id);
+    msg.addArgument(id);
+    msg.addArgument(1);
+    emit emitMessage(msg);
+    sendRoomInfo(-1);
     if(map.isEmpty()){
         allowJoin=false;
         this->deleteLater();
     }
     else if(!inGame)
         allowJoin=true;
-    if(!force){
-        Message msg(2,3,1,id,2,this->id);
-        msg.addArgument(1);
-        emit emitMessage(msg);
-    }
-    sendRoomInfo(-1);
     return true;
 }
 void RoomSrv::startGame(){
@@ -154,25 +160,27 @@ void RoomSrv::startGame(){
     rt.start();
 }
 void RoomSrv::redirectMessage(Message msg){
+    qDebug()<<"In redirectMessage....";
     msg.setSenderType(2);
     msg.setSenderid(id);
     if(msg.getReceiverType()==1){
-        if(msg.getReceiverid()==-1)
+        if(msg.getReceiverid()==-1){
             for(int i=0;i<num;i++)
                 if(map.contains(i)){
                     msg.setReceiverid(map[i]);
+                    qDebug()<<"To "<<map[i];
                     emit emitMessage(msg);
                 }
-
+        }
         else if(msg.getReceiverid()==-2)
             for(int i=0;i<audience.size();i++){
                 msg.setReceiverid(map[audience[i]]);
                 emit emitMessage(msg);
             }
-            else{
-                    msg.setReceiverid(map[msg.getReceiverid()]);
-                    emit emitMessage(msg);
-                }
+        else{
+                msg.setReceiverid(map[msg.getReceiverid()]);
+                emit emitMessage(msg);
+            }
 
     }
     else
@@ -189,8 +197,6 @@ void RoomSrv::sendRoomInfo(int receiver){
             info.addArgument(i);
             info.addArgument(map[i]);
         }
-    redirectMessage(info);
-    info.setReceiverType(0);
     redirectMessage(info);
     qDebug()<<"Out sendRoomInfo...";
 }
