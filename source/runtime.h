@@ -58,6 +58,7 @@ private:
     QVector<int> VoteResults;   //白天投票结果（谁投了谁）
     QVector<int> VotePoll;   //每个人得票数
     QVector <player*> seats;  //与座位号对应的玩家类
+    QVector<int> Contribution; //玩家对己方的贡献度，用于结束后评定MVP
     Message CurrentMessage;  //通讯用的消息类
     bool Winner;       //获胜方
     bool Explode;     //是否有人自爆

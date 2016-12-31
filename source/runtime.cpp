@@ -136,6 +136,7 @@ runtime::runtime(QObject * parent,int num)
         p = new player();
         seats.push_back(p);
         PlayerOnline.push_back(true);
+        Contribution.push_back(0);
     }
 }
 
@@ -146,6 +147,7 @@ void runtime::Game()
     QVector<int> temp;
     QVector<int> VoteProcesser;
     int VoteMax = -1;
+    int MVP = -1;
     QString s;
     temp.clear();
     VoteProcesser.clear();
@@ -385,6 +387,7 @@ void runtime::Game()
                 for (int i = 0; i < player_num; i++){
                     if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i))
                         MakeMessage(1,13,i,OfficerCandidateList,"请投票");
+                    emit Wait(i);
                     //判断自爆
                     if (Explode){
                         s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
@@ -479,6 +482,8 @@ void runtime::Game()
             MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
         }
 
+        if (Check()) break;
+
         //判断自爆
         if (Explode){
             s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
@@ -496,6 +501,8 @@ void runtime::Game()
                 emit Wait(HunterNo);
             }
         }
+
+        if (Check()) break;
 
         //判断自爆
         if (Explode){
@@ -617,6 +624,13 @@ void runtime::Game()
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
     }
+    VoteMax = -100;
+    for (int i=0;i<player_num;i++){
+        if (Contribution.at(i)>VoteMax){
+            MVP = i;
+            VoteMax = Contribution.at(i);
+        }
+    }
 
     temp.~QVector();
     s.~QString();
@@ -638,6 +652,10 @@ void runtime::MedicineResult(bool res){
     if (res){
         Medicine = false;
         KilledTonight.pop_back();
+        if (seats.at(res)->getJob()==Wolf)
+            Contribution[WitchNo]-=getAlivePlayerList(false).size()-getAllWolfs().size();
+        else
+            Contribution[WitchNo]+=getAllWolfs().size();
     }
 }
 
@@ -646,6 +664,10 @@ void runtime::PoisonResult(int tar){
         Poison = false;
         KilledTonight.push_back(tar);
         PoisonTarget = tar;
+        if (seats.at(tar)->getJob()==Wolf)
+            Contribution[WitchNo]+=getAllWolfs().size();
+        else
+            Contribution[WitchNo]-=getAlivePlayerList(false).size()-getAllWolfs().size();
     }
 }
 
@@ -658,12 +680,35 @@ void runtime::OfficerElection(int voter, int voted)
 {
     OfficerVoteResults[voter] = voted;
     OfficerVotePoll[voted] += 1;
+    if (seats.at(voter)->getJob()!=Wolf && seats.at(voted)->getJob()==Wolf){
+        Contribution[voter]--;
+        if (seats.at(voter)->getJob()==Seer) Contribution[voter]--;
+    }
+    if (seats.at(voter)->getJob()==Wolf && seats.at(voted)->getJob()!=Valliger && seats.at(voted)->getJob()!=Wolf){
+        Contribution[voter]-=2;
+        if (seats.at(voted)->getJob()==Seer) Contribution[voter]--;
+    }
 }
 
 void runtime::OfficerPass(int receiver)
 {
     QVector<int> temp;
     temp.clear();
+    if (receiver!=-1)
+        if (seats.at(OfficerNo)->getJob()!=Wolf)
+            if (seats.at(OfficerNo)->getJob()!=Seer)
+                if (seats.at(receiver)->getJob()==Wolf)
+                    Contribution[OfficerNo]-=getAlivePlayerList(true).size()-getAllWolfs().size();
+                else
+                    Contribution[OfficerNo]+=getAlivePlayerList(true).size()-getAllWolfs().size();
+            else
+                if (seats.at(receiver)->getJob()==Wolf)
+                    Contribution[OfficerNo]-=player_num;
+                else
+                    Contribution[OfficerNo]+=getAlivePlayerList(true).size()-getAllWolfs().size()-1;
+        else
+            if (seats.at(receiver)->getJob()==Seer)
+                Contribution[OfficerNo]-=getAllWolfs().size();
     OfficerNo = receiver;
     if (receiver == -1){
         MakeMessage(1,10,-1,temp,"警徽撕毁，此后游戏无警长");
@@ -679,6 +724,9 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
+    if (seats.at(OfficerNo)->getJob()!=Wolf)
+        if (seats.at(voted)->getJob()==Wolf) Contribution[OfficerNo]+=2;
+        else Contribution[OfficerNo]-=2;
     int i = OfficerNo;
     if (direction){
         MakeMessage(1,10,-1,temp,"从警长右侧开始发言");
@@ -708,6 +756,14 @@ void runtime::DayVote(int voter, int voted)
 {
     VoteResults[voter] = voted;
     VotePoll[voted]+=2;
+    if (seats.at(voter)->getJob()!=Wolf && seats.at(voted)->getJob()==Wolf){
+        Contribution[voter]++;
+        if (seats.at(voter)->getJob()!=Seer) Contribution[voter]++;
+    }
+    if (seats.at(voter)->getJob()==Wolf && seats.at(voted)->getJob()!=Valliger && seats.at(voted)->getJob()!=Wolf){
+        Contribution[voter]++;
+        if (seats.at(voted)->getJob()==Seer) Contribution[voter]++;
+    }
 }
 
 bool runtime::setExplode(int x)
@@ -726,6 +782,8 @@ void runtime::HunterKill(int x)
     QVector<int> temp;
     temp.clear();
     if (x != -1){
+        if (seats.at(x)->getJob()==Wolf) Contribution[HunterNo]+= ((player_num-3)/2-getAllWolfs().size()+1);
+        else Contribution[HunterNo]-=((player_num-3)/2+3-getAlivePlayerList(true).size()-getAllWolfs().size()+1);
         seats[x]->setLife(false);
         MakeMessage(1,10,-1,temp,QString("%1号猎人死亡开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
