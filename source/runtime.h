@@ -1,4 +1,4 @@
-#ifndef RUNTIME_H
+﻿#ifndef RUNTIME_H
 #define RUNTIME_H
 
 #define WolfWin false
