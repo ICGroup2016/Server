@@ -1,4 +1,4 @@
-#include "runtime.h"
+﻿#include "runtime.h"
 #include <ctime>
 #include <cstdlib>
 #include <QDebug>
@@ -47,22 +47,30 @@ void runtime::Assign()
             seats[i]->setJob(Witch);
             break;
         case 2:
-            temp.push_back(4);
-            MakeMessage(1,1,i,temp,"您的身份为猎人");
-            HunterNo = i;
-            seats[i]->setJob(Hunter);
-            break;
-        default:
-            if (r <= (player_num-3)/2+3){
+            if (player_num >= 6){
+                temp.push_back(4);
+                MakeMessage(1,1,i,temp,"您的身份为猎人");
+                HunterNo = i;
+                seats[i]->setJob(Hunter);
+                break;
+            }
+            else
+            {
                 temp.push_back(1);
                 MakeMessage(1,1,i,temp,"您的身份为狼人");
                 seats[i]->setJob(Wolf);
             }
-            else
-            {
+        default:
+            if (r <= (player_num-(player_num >= 6? 3:2))/2+ (player_num >= 6? 3:2)){
                 temp.push_back(5);
                 MakeMessage(1,1,i,temp,"您的身份为村民");
                 seats[i]->setJob(Valliger);
+            }
+            else
+            {
+                temp.push_back(1);
+                MakeMessage(1,1,i,temp,"您的身份为狼人");
+                seats[i]->setJob(Wolf);
             }
             break;
         }
@@ -134,7 +142,6 @@ runtime::runtime(QObject * parent,int num)
 void runtime::Game()
 {
     Assign();     //分配座位号和身份
-    qDebug() << "Assign完毕";
 
     QVector<int> temp;
     QVector<int> VoteProcesser;
@@ -234,7 +241,7 @@ void runtime::Game()
             if (Day != 0) MakeMessage(1,10,WitchNo,temp,"这里本来应该问你用不用毒药的，但你已经没有毒药啦！");
             else MakeMessage(1,10,WitchNo,temp,"第一个晚上不能毒人");
 
-            if ( !Medicine && !Poison) MakeMessage(1,10,WitchNo,temp,"你已经是个白板啦！哈哈哈哈");
+            if ( !Medicine && !Poison) MakeMessage(1,10,WitchNo,temp,"你已经是个白板啦!");
 
             AliveList = getAlivePlayerList(false);
 
@@ -671,7 +678,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     QVector<int> temp;
     temp.clear();
     VoteResults[OfficerNo] = voted;
-    VotePoll[voted]++;
+    VotePoll[voted]+=3;
     int i = OfficerNo;
     if (direction){
         MakeMessage(1,10,-1,temp,"从警长右侧开始发言");
@@ -700,7 +707,7 @@ void runtime::OfficerDecide(int voted, bool direction)
 void runtime::DayVote(int voter, int voted)
 {
     VoteResults[voter] = voted;
-    VotePoll[voted] += 1;
+    VotePoll[voted]+=2;
 }
 
 bool runtime::setExplode(int x)
