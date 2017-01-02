@@ -87,7 +87,7 @@ public:
 
 signals:
     void SendMessage(Message);
-    void Wait(int);
+    void Wait(QVector<int>);
 };
 
 
