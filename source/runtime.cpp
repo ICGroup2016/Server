@@ -193,6 +193,7 @@ void runtime::Game()
             }
         }
 
+
         KilledTonight.push_back(WhisperResults.at(0));
         //杀死狼人讨论结果的玩家
 
