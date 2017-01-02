@@ -119,4 +119,10 @@ void RuntimeWrapper::onExplode(int seat){
         msg.addArgument(1);
         emit emitMessage(msg);
     }
+    waitLock.lock();
+    if(!waitList.isEmpty()){
+        waitList.clear();
+        waitForResponse.wakeAll();
+    }
+    waitLock.unlock();
 }
