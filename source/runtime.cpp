@@ -157,7 +157,7 @@ void runtime::Game()
         AliveList = getAlivePlayerList(false);
         WolfList = getAllWolfs();
 
-        Explode = false;
+        Explode = true;
 
         //所有人员闭眼
         MakeMessage(1,2,-1,temp,"天黑请闭眼");
@@ -295,6 +295,8 @@ void runtime::Game()
         if (!Check()){
             break;
         }//判断是否有人获胜
+
+        Explode = false;
 
         //全体睁眼
         MakeMessage(1,3,-1,temp,"天亮了");
