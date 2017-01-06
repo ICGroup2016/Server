@@ -85,7 +85,7 @@ void RoomSrv::processRuntimeMessage(Message msg){
     redirectMessage(msg);
     QVector<int> arg=msg.getArgument();
     if(msg.getType()==1){
-        if(msg.getSubtype()==5){
+        if(msg.getSubtype()==4){
             QVector<int> speaker=msg.getArgument();
             openDiscussion(0,&speaker);
         }

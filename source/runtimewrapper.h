@@ -16,9 +16,8 @@ signals:
 protected:
     void run() Q_DECL_OVERRIDE;
 private:
-    void waitForPlayer(int);
+    void waitForPlayer(QVector<int>);
     void removePlayer(int);
-    void processRuntimeMessage(Message);
     void onExplode(int);
     int roomID;
     bool isWaiting;
