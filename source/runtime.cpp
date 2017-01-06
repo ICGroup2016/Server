@@ -169,7 +169,7 @@ void runtime::Game()
             MakeMessage(1,3,WolfList.at(i),temp,"狼人请睁眼");
 
             //向狼人提供可杀死玩家列表
-            MakeMessage(1,4,WolfList.at(i),AliveList,"请讨论夜间杀死的玩家");
+            MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
 
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
