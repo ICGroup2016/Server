@@ -2,3 +2,8 @@
 !*.cpp
 !*.pro
 !.gitignore
+!*.h
+!*.c
+!source
+!documentation*
+!*.xls*
