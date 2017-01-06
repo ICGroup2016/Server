@@ -5,20 +5,22 @@ Daemon::Daemon(QObject *parent)
 {
     if(this->listen())
     {
-        QString ipAddress;
+        QVector<QString> ipAddress;
             QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
             // use the first non-localhost IPv4 address
             for (int i = 0; i < ipAddressesList.size(); ++i) {
                 if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
                     ipAddressesList.at(i).toIPv4Address()) {
-                    ipAddress = ipAddressesList.at(i).toString();
-                    break;
+                    ipAddress.append(ipAddressesList.at(i).toString());
                 }
             }
             // if we did not find one, use IPv4 localhost
             if (ipAddress.isEmpty())
-                ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-            qDebug()<<tr("The server is running on %1 ip and %2 port").arg(ipAddress).arg(this->serverPort());
+                ipAddress.append(QHostAddress(QHostAddress::LocalHost).toString());
+            qDebug()<<tr("The server is running on %2 port").arg(this->serverPort());
+            qDebug()<<tr("The server can be accessed through the following ip:");
+            for(int i=0;i<ipAddress.size();i++)
+                qDebug()<<ipAddress[i];
     }
 }
 void Daemon::incomingConnection(qintptr _descriptr){
@@ -95,11 +97,9 @@ void Daemon::onNetworkError(Message msg){
     for(int i=0;i<connections.size();i++)
         if(!connections[i]){
             connections.removeAt(i);
-            qDebug()<<i<<"deleted";
         }
         else if(connections[i]->getID()==id){
             connections.removeAt(i);
-            qDebug()<<i<<"deleted";
         }
     if(map[id]!=-1){
         Message msg(2,3,2,map[id],1,id);
@@ -147,7 +147,6 @@ void Daemon::deliverMessage(Message msg){
                 QCoreApplication::postEvent(rooms[i],tmp);
         break;
     }
-    QCoreApplication::sendPostedEvents();
 }
 QVector<int> Daemon::genRoomInfo(){
     QVector<int> result;
