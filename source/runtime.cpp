@@ -85,6 +85,9 @@ QVector<int> runtime::getAlivePlayerList(bool IsDay)
             if (!IsDay){    //如果不是白天，那么当晚杀死的人暂时视为存活
                 if (seats.at(i)->getLife() && !KilledTonight.contains(i))
                     x.push_back(i);
+            }else{
+                if (seats.at(i)->getLife())
+                    x.push_back(i);
             }
         }
     }
@@ -168,13 +171,13 @@ void runtime::Game()
             MakeMessage(1,3,WolfList.at(i),temp,"狼人请睁眼");
 
             //向狼人提供可杀死玩家列表
-            MakeMessage(1,4,WolfList.at(i),AliveList,"请讨论夜间杀死的玩家");
+            MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
 
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
         emit Wait(WolfList);
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         WhisperResults.clear();
         //逐个请求讨论结果
@@ -187,7 +190,7 @@ void runtime::Game()
         }
         //每个人的讨论结果请求完后，房间调用WhisperResult(int seat);
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         for (int i = 1; i<WhisperResults.size(); i++){
             if (WhisperResults.at(i) > WhisperResults.at(0)){
@@ -203,14 +206,14 @@ void runtime::Game()
 
         AliveList = getAlivePlayerList(false);
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         for (int i = 0; i < WolfList.size(); i++)
         {
             MakeMessage(1,2,WolfList.at(i),temp,"狼人请闭眼");
         }  //所有狼人闭眼
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         currentplayer = * seats.at(WitchNo);
         if (currentplayer.getLife())
