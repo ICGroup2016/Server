@@ -23,7 +23,6 @@ void runtime::Assign()
 {
     srand(time(NULL));
     int r;
-    QString s;
     QVector<int> temp;
     QVector<int> occupied;
     for (int i = 0;i<player_num;i++) occupied.push_back(false);
@@ -159,7 +158,7 @@ void runtime::Game()
         AliveList = getAlivePlayerList(false);
         WolfList = getAllWolfs();
 
-        Explode = false;
+        Explode = true;
 
         //所有人员闭眼
         MakeMessage(1,2,-1,temp,"天黑请闭眼");
@@ -184,7 +183,7 @@ void runtime::Game()
         for (int i = 0; i<WolfList.size(); i++){
              MakeMessage(1,6,WolfList.at(i),AliveList,"请选择今晚杀死的玩家（狼人选择不一致时以被选择最多的玩家为准，并列最多时以座位号更低的狼人选择的目标为准）");
              temp.clear();
-             temp.push_back(i);
+             temp.push_back(WolfList.at(i));
              emit Wait(temp);
              temp.clear();
         }
@@ -298,6 +297,8 @@ void runtime::Game()
         if (!Check()){
             break;
         }//判断是否有人获胜
+
+        Explode = false;
 
         //全体睁眼
         MakeMessage(1,3,-1,temp,"天亮了");
@@ -698,7 +699,7 @@ void runtime::PoisonResult(int tar){
 
 void runtime::SeeResult(int res)
 {
-    SeeResultIsWolf = WolfList.contains(res);
+    SeeResultIsWolf = (seats.at(res)->getJob() == Wolf);
 }
 
 void runtime::OfficerElection(int voter, int voted)
