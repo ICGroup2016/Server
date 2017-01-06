@@ -73,7 +73,7 @@ public:
     void Game();    //游戏全过程
     void WhisperResult(int seat);  //添加狼人讨论结果
     void OfficerCandidate(int candi);   //玩家是否参选警长
-    void MedicineResult(bool res);  //女巫解药是否使用
+    void MedicineResult(int res);  //女巫解药是否使用
     void PoisonResult(int tar);  //女巫毒药对谁使用
     void SeeResult(int res);  //预言家看谁
     void OfficerElection(int voter, int voted);  //选警长时voter选了voted
