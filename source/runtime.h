@@ -52,11 +52,11 @@ private:
     QVector<int> WolfList;    //游戏进行中存活狼人的座位号
     QVector<int> KilledTonight;    //某天晚上死亡的玩家座位号列表
     QVector<int> OfficerCandidateList;    //首日竞选警长的玩家列表
-    QVector<int> OfficerVotePoll;         //每个人得票数
-    QVector<int> OfficerVoteResults;     //警长竞选，谁投了谁
+    int OfficerVotePoll[12];         //每个人得票数
+    int OfficerVoteResults[12];     //警长竞选，谁投了谁
     QVector<int> VoteCandidate;   //可以被投死的玩家
-    QVector<int> VoteResults;   //白天投票结果（谁投了谁）
-    QVector<int> VotePoll;   //每个人得票数
+    int VoteResults[12];   //白天投票结果（谁投了谁）
+    int VotePoll[12];   //每个人得票数
     QVector <player*> seats;  //与座位号对应的玩家类
     Message CurrentMessage;  //通讯用的消息类
     bool Winner;       //获胜方
