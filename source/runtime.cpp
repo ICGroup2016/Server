@@ -681,8 +681,8 @@ void runtime::OfficerCandidate(int candi)
     OfficerCandidateList.push_back(candi);
 }
 
-void runtime::MedicineResult(bool res){
-    if (res){
+void runtime::MedicineResult(int res){
+    if (res != -1){
         Medicine = false;
         KilledTonight.pop_back();
     }
