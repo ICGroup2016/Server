@@ -170,7 +170,7 @@ void runtime::Game()
 
         emit Wait(WolfList);
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         WhisperResults.clear();
         //逐个请求讨论结果
@@ -183,7 +183,7 @@ void runtime::Game()
         }
         //每个人的讨论结果请求完后，房间调用WhisperResult(int seat);
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         for (int i = 1; i<WhisperResults.size(); i++){
             if (WhisperResults.at(i) > WhisperResults.at(0)){
@@ -198,13 +198,12 @@ void runtime::Game()
         //杀死狼人讨论结果的玩家
 
         if (Check()){ break;}
-
         for (int i = 0; i < WolfList.size(); i++)
         {
             MakeMessage(1,2,WolfList.at(i),temp,"狼人请闭眼");
         }  //所有狼人闭眼
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
 
         currentplayer = * seats.at(WitchNo);
         if (currentplayer.getLife())

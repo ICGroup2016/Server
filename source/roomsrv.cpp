@@ -68,7 +68,7 @@ bool RoomSrv::event(QEvent *e){
             else if(tmp.getArgument()[0]==1){
                 speakerCount--;
                 if(inGame)
-                    rt.stopWaitForPlayer(tmp.getSenderid());
+                    rt.stopWaitForPlayer(map.key(tmp.getSenderid()));
             }
             else if(tmp.getArgument()[0]==-1){
                 speakerCount=0;
@@ -122,7 +122,6 @@ bool RoomSrv::addPlayer(int id){
     msg.addArgument(0);
     emit emitMessage(msg);
     sendRoomInfo(-1);
-    qDebug()<<"player "<<id<<" added";
     return true;
 }
 bool RoomSrv::removePlayer(bool force, int id){
@@ -159,7 +158,6 @@ void RoomSrv::startGame(){
     rt.start();
 }
 void RoomSrv::redirectMessage(Message msg){
-    qDebug()<<"In redirectMessage....";
     msg.setSenderType(2);
     msg.setSenderid(id);
     if(msg.getReceiverType()==1){
@@ -167,7 +165,6 @@ void RoomSrv::redirectMessage(Message msg){
             for(int i=0;i<num;i++)
                 if(map.contains(i)){
                     msg.setReceiverid(map[i]);
-                    qDebug()<<"To "<<map[i];
                     emit emitMessage(msg);
                 }
         }
@@ -186,7 +183,6 @@ void RoomSrv::redirectMessage(Message msg){
         emit emitMessage(msg);
 }
 void RoomSrv::sendRoomInfo(int receiver){
-    qDebug()<<"In sendRoomInfo..";
     Message info(2,6,1,receiver);
     info.addArgument(num);
     info.addArgument(map.size());
@@ -197,7 +193,6 @@ void RoomSrv::sendRoomInfo(int receiver){
             info.addArgument(map[i]);
         }
     redirectMessage(info);
-    qDebug()<<"Out sendRoomInfo...";
 }
 void RoomSrv::openDiscussion(int receiver, QVector<int> *list){
     if(receiver==-1){
