@@ -148,6 +148,10 @@ void runtime::Game()
     {
 
         KilledTonight.clear();
+        OfficerVotePoll = QVector<int>(player_num,0);
+        OfficerVoteResults = QVector<int>(player_num,0);
+        VotePoll = QVector<int>(player_num,0);
+        VoteResults = QVector<int>(player_num,0);
 
         AliveList = getAlivePlayerList();
         WolfList = getAllWolfs();
@@ -665,7 +669,7 @@ void runtime::Game()
                 if (Explode) continue;
             }
         }else{
-            s = QString("从%1号玩家开始发言").arg(AliveList.at(0));
+            s = QString("从%1号玩家开始发言").arg(AliveList.at(0)+1);
             MakeMessage(1,10,-1,temp,s);
             for (int i = 0; i<AliveList.size(); i++){
                 MakeMessage(1,12,AliveList.at(i),temp);
@@ -775,7 +779,8 @@ void runtime::MedicineResult(int res){
 void runtime::PoisonResult(int tar){
     if (tar!=-1){
         Poison = false;
-        KilledTonight.push_back(tar);
+        if (!KilledTonight.contains(tar))
+            KilledTonight.push_back(tar);
         PoisonTarget = tar;
     }
 }
