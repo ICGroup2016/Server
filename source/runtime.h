@@ -62,10 +62,10 @@ private:
     bool Winner;       //获胜方
     bool Explode;     //是否有人自爆
     bool SeeResultIsWolf;   //预言结果是否为狼人
-
+    bool Direc;
     bool Check();     //判断游戏结束
     void Assign();    //分配身份
-    QVector <int> getAlivePlayerList(bool IsDay);   //返回存活玩家座位号列表
+    QVector <int> getAlivePlayerList();   //返回存活玩家座位号列表
     QVector <int> getAllWolfs();        //返回存活狼座位号列表
     void MakeMessage(int t, int subt, int recid, QVector<int> arg, QString det = "");  //制作消息并发送
 public:

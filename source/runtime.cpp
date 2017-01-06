@@ -76,17 +76,12 @@ void runtime::Assign()
     }
 }
 
-QVector<int> runtime::getAlivePlayerList(bool IsDay)
+QVector<int> runtime::getAlivePlayerList()
 {
     QVector<int> x;
     for (int i = 0; i<player_num; i++){
         if (PlayerOnline.at(i)){
-            if (!IsDay){    //如果不是白天，那么当晚杀死的人暂时视为存活
-                if (seats.at(i)->getLife() && !KilledTonight.contains(i))
-                    x.push_back(i);
-            }else{
                 if (seats.at(i)->getLife()) x.push_back(i);
-            }
         }
     }
     return x;
@@ -97,7 +92,7 @@ QVector<int> runtime::getAllWolfs()
     QVector<int> x;
     for (int i = 0; i<player_num; i++){
         if (PlayerOnline.at(i)){
-            if (seats.at(i)->getLife() && seats.at(i)->getJob()==Wolf && !KilledTonight.contains(i))
+            if (seats.at(i)->getLife() && seats.at(i)->getJob()==Wolf)
                 x.push_back(i);
         }
     }
@@ -154,7 +149,7 @@ void runtime::Game()
 
         KilledTonight.clear();
 
-        AliveList = getAlivePlayerList(false);
+        AliveList = getAlivePlayerList();
         WolfList = getAllWolfs();
 
         Explode = true;
@@ -201,8 +196,6 @@ void runtime::Game()
         KilledTonight.push_back(WhisperResults.at(0));
         //杀死狼人讨论结果的玩家
 
-        AliveList = getAlivePlayerList(false);
-
         if (Check()){ break;}
 
         for (int i = 0; i < WolfList.size(); i++)
@@ -241,7 +234,7 @@ void runtime::Game()
             }
             else MakeMessage(1,10,WitchNo,temp,"这里本来该问你用不用解药的，但你已经没有解药啦！");
 
-            AliveList = getAlivePlayerList(false);
+            AliveList = getAlivePlayerList();
 
             //毒人
             if (Poison && Day != 0)
@@ -258,7 +251,7 @@ void runtime::Game()
 
             if ( !Medicine && !Poison) MakeMessage(1,10,WitchNo,temp,"你已经是个白板啦!");
 
-            AliveList = getAlivePlayerList(false);
+            AliveList = getAlivePlayerList();
 
             //女巫闭眼
             MakeMessage(1,2,WitchNo,temp,"女巫请闭眼");
@@ -346,7 +339,7 @@ void runtime::Game()
             }
 
             MakeMessage(1,11,-1,temp,"是否竞选警长？");
-            emit Wait(getAlivePlayerList(false));
+            emit Wait(getAlivePlayerList());
 
             //判断自爆
             if (Explode){
@@ -372,116 +365,134 @@ void runtime::Game()
                 }
             }
             else{
-                s = QString("共有%1名玩家参选，下面请他们依次发言").arg(OfficerCandidateList.size());
-                MakeMessage(1,10,-1,temp,s);
-                //判断自爆
-                if (Explode){
-                    s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                if (OfficerCandidateList.size()>0){
+                    s = QString("共有%1名玩家参选，下面请他们依次发言").arg(OfficerCandidateList.size());
                     MakeMessage(1,10,-1,temp,s);
-                    MakeMessage(1,17,ExplodeID,temp,"你死了");
-                    Explode = false;
-                    ExplodeID = -1;
-                    MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                    continue;
-                }
-            }
-
-            do{
-                for (int i = 0; i < OfficerCandidateList.size(); i++){
-                    MakeMessage(1,12,OfficerCandidateList.at(i),temp,"请发表竞选陈述");
-                    temp.clear();
-                    temp.push_back(OfficerCandidateList.at(i));
-                    emit Wait(temp);
-                    temp.clear();
                     //判断自爆
                     if (Explode){
                         s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
                         MakeMessage(1,10,-1,temp,s);
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
+                        Explode = false;
                         ExplodeID = -1;
                         MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                        break;
+                        continue;
                     }
-                }
-                if (Explode) break;
 
-                for (int i = 0; i < player_num; i++){
-                    if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i))
-                        MakeMessage(1,13,i,OfficerCandidateList,"请投票");
-                    //判断自爆
-                    if (Explode){
-                        s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
-                        MakeMessage(1,10,-1,temp,s);
-                        MakeMessage(1,17,ExplodeID,temp,"你死了");
-                        ExplodeID = -1;
-                        MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                        break;
-                    }
-                }
-                if (Explode) break;
 
-                VoteMax = -1;
-                VoteProcesser.clear();
-                for (int i = 0; i < player_num; i++){
-                    if (OfficerCandidateList.contains(i) && OfficerVotePoll.at(i) >= VoteMax){
-                        if (OfficerVotePoll.at(i) > VoteMax){
-                            VoteMax = OfficerVotePoll.at(i);
-                            VoteProcesser.clear();
+                    do{
+                        for (int i = 0; i < OfficerCandidateList.size(); i++){
+                            MakeMessage(1,12,OfficerCandidateList.at(i),temp,"请发表竞选陈述");
+                            temp.clear();
+                            temp.push_back(OfficerCandidateList.at(i));
+                            emit Wait(temp);
+                            temp.clear();
+                            //判断自爆
+                            if (Explode){
+                                s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                                MakeMessage(1,10,-1,temp,s);
+                                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                                ExplodeID = -1;
+                                MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                                break;
+                            }
                         }
-                        VoteProcesser.push_back(i);
-                    }
-                }
-                OfficerCandidateList = VoteProcesser;
-                MakeMessage(1,10,-1,temp,"本次投票结果如下：");
-                for (int i = 0; i < player_num; i++){
-                    if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
-                        s = QString("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults.at(i)+1);
-                        MakeMessage(1,10,-1,temp,s);
-                    }
-                }
-                //判断自爆
-                if (Explode){
-                    s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
-                    MakeMessage(1,10,-1,temp,s);
-                    MakeMessage(1,17,ExplodeID,temp,"你死了");
-                    ExplodeID = -1;
-                    MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                    break;
-                }
-                if (OfficerCandidateList.size() == 1){
-                    s = QString("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1);
-                    MakeMessage(1,10,-1,temp,s);
-                }else{
-                    MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
-                }
-            }while (OfficerCandidateList.size() != 1);  //持续投票，直到唯一一个警长出现
-            if (Explode && ExplodeID == -1) continue;
+                        if (Explode) break;
 
-            if (Explode){
-                Explode = false;
-                //公布死亡情况
-                switch(KilledTonight.size()){
-                case 0:
-                    MakeMessage(1,10,-1,temp,"今晚是个平安夜");
-                    break;
-                case 1:
-                    s = QString("今晚%1号玩家死了").arg(KilledTonight.at(0)+1);
-                    MakeMessage(1,10,-1,temp,s);
-                    break;
-                case 2:
-                    s = QString("今晚%1号玩家和%2号玩家死了").arg(KilledTonight.at(0)+1).arg(KilledTonight.at(1)+1);
-                    MakeMessage(1,10,-1,temp,s);
-                    break;
+                        for (int i = 0; i < player_num; i++){
+                            if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
+                                MakeMessage(1,13,i,OfficerCandidateList,"请投票");
+                                temp.clear();
+                                temp.push_back(i);
+                                Wait(temp);
+                                temp.clear();
+                            }
+                            //判断自爆
+                            if (Explode){
+                                s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                                MakeMessage(1,10,-1,temp,s);
+                                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                                ExplodeID = -1;
+                                MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                                break;
+                            }
+                        }
+                        if (Explode) break;
+
+                        VoteMax = -1;
+                        VoteProcesser.clear();
+                        for (int i = 0; i < player_num; i++){
+                            if (OfficerCandidateList.contains(i) && OfficerVotePoll.at(i) >= VoteMax){
+                                if (OfficerVotePoll.at(i) > VoteMax){
+                                    VoteMax = OfficerVotePoll.at(i);
+                                    VoteProcesser.clear();
+                                }
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                        OfficerCandidateList = VoteProcesser;
+                        MakeMessage(1,10,-1,temp,"本次投票结果如下：");
+                        for (int i = 0; i < player_num; i++){
+                            if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
+                                s = QString("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults.at(i)+1);
+                                MakeMessage(1,10,-1,temp,s);
+                            }
+                        }
+                        //判断自爆
+                        if (Explode){
+                            s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                            MakeMessage(1,10,-1,temp,s);
+                            MakeMessage(1,17,ExplodeID,temp,"你死了");
+                            ExplodeID = -1;
+                            MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                            break;
+                        }
+                        if (OfficerCandidateList.size() == 1){
+                            s = QString("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1);
+                            MakeMessage(1,10,-1,temp,s);
+                        }else{
+                            MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
+                        }
+                    }while (OfficerCandidateList.size() != 1);  //持续投票，直到唯一一个警长出现
+                    if (Explode && ExplodeID == -1) continue;
+
+                    if (Explode){
+                        Explode = false;
+                        //公布死亡情况
+                        switch(KilledTonight.size()){
+                        case 0:
+                            MakeMessage(1,10,-1,temp,"今晚是个平安夜");
+                            break;
+                        case 1:
+                            s = QString("今晚%1号玩家死了").arg(KilledTonight.at(0)+1);
+                            MakeMessage(1,10,-1,temp,s);
+                            break;
+                        case 2:
+                            s = QString("今晚%1号玩家和%2号玩家死了").arg(KilledTonight.at(0)+1).arg(KilledTonight.at(1)+1);
+                            MakeMessage(1,10,-1,temp,s);
+                            break;
+                        }
+                        //确认死亡
+                        for (int i = 0; i< KilledTonight.size(); i++){
+                        seats[KilledTonight.at(i)]->setLife(false);
+                        MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
+                    }
+                        continue;
+                    }
+                }else{
+                    MakeMessage(1,10,-1,temp,"无人竞选警长，本轮游戏无警长！");
+                    //判断自爆
+                    if (Explode){
+                        s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                        MakeMessage(1,10,-1,temp,s);
+                        MakeMessage(1,17,ExplodeID,temp,"你死了");
+                        Explode = false;
+                        ExplodeID = -1;
+                        continue;
+                    }
                 }
-                //确认死亡
-                for (int i = 0; i< KilledTonight.size(); i++){
-                    seats[KilledTonight.at(i)]->setLife(false);
-                    MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
-                }
-                continue;
             }
         }
-
         //公布死亡情况
         switch(KilledTonight.size()){
         case 0:
@@ -515,7 +526,7 @@ void runtime::Game()
         //猎人如不是被毒死的，则发动技能
         if (KilledTonight.contains(HunterNo)){
             if (PoisonTarget != HunterNo){
-                MakeMessage(1,18,HunterNo,getAlivePlayerList(true),"请选择带走的对象");
+                MakeMessage(1,18,HunterNo,getAlivePlayerList(),"请选择带走的对象");
                 temp.clear();
                 temp.push_back(HunterNo);
                 emit Wait(temp);
@@ -566,7 +577,7 @@ void runtime::Game()
         }
 
         //刷新存活列表
-        AliveList = getAlivePlayerList(true);
+        AliveList = getAlivePlayerList();
         WolfList = getAllWolfs();
 
         KilledTonight.clear();
@@ -584,21 +595,95 @@ void runtime::Game()
 
         //警长发言归票，然后决定发言顺序，并发言
         if (OfficerNo != -1){
+            //判断自爆
+            if (Explode){
+                s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                MakeMessage(1,10,-1,temp,s);
+                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                ExplodeID = -1;
+                Explode = false;
+                continue;
+            }
             MakeMessage(1,10,-1,temp,"下面请警长归票、发言并决定发言方向");
             MakeMessage(1,15,OfficerNo,AliveList,"请归票，阐述理由，并决定发言方向");
             temp.clear();
             temp.push_back(OfficerNo);
             emit Wait(temp);
             temp.clear();
+            //判断自爆
+            if (Explode){
+                s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                MakeMessage(1,10,-1,temp,s);
+                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                ExplodeID = -1;
+                Explode = false;
+                continue;
+            }
+            if (Direc){
+                MakeMessage(1,10,-1,temp,"从警长右侧开始发言");
+
+                for (int i = (OfficerNo + 1) % player_num; i != OfficerNo; i = (i + 1) % player_num){
+                    //判断自爆
+                    if (Explode){
+                        s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                        MakeMessage(1,10,-1,temp,s);
+                        MakeMessage(1,17,ExplodeID,temp,"你死了");
+                        ExplodeID = -1;
+                        Explode = false;
+                        break;
+                    }
+                    if (seats.at(i)->getLife()){
+                        MakeMessage(1,12,i,temp);
+                        temp.clear();
+                        temp.push_back(i);
+                        emit Wait(temp);
+                        temp.clear();
+                    }
+                }
+                if (Explode) continue;
+            }else{
+                MakeMessage(1,10,-1,temp,"从警长左侧开始发言");
+                for (int i = (OfficerNo - 1 + player_num) % player_num; i != OfficerNo; i = (i - 1 + player_num) % player_num){
+                    //判断自爆
+                    if (Explode){
+                        s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                        MakeMessage(1,10,-1,temp,s);
+                        MakeMessage(1,17,ExplodeID,temp,"你死了");
+                        ExplodeID = -1;
+                        Explode = false;
+                        break;
+                    }
+                    if (seats.at(i)->getLife()){
+                        MakeMessage(1,12,i,temp);
+                        temp.clear();
+                        temp.push_back(i);
+                        emit Wait(temp);
+                        temp.clear();
+                    }
+                    i = (i - 1 + player_num) % player_num;
+                }
+                if (Explode) continue;
+            }
         }else{
-            MakeMessage(1,10,-1,temp,"从0号玩家开始发言");
+            s = QString("从%1号玩家开始发言").arg(AliveList.at(0));
+            MakeMessage(1,10,-1,temp,s);
             for (int i = 0; i<AliveList.size(); i++){
                 MakeMessage(1,12,AliveList.at(i),temp);
                 temp.clear();
                 temp.push_back(AliveList.at(i));
                 emit Wait(temp);
                 temp.clear();
+                //判断自爆
+                if (Explode){
+                    s = QString("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1);
+                    MakeMessage(1,10,-1,temp,s);
+                    MakeMessage(1,17,ExplodeID,temp,"你死了");
+                    ExplodeID = -1;
+                    Explode = false;
+                    break;
+                }
             }
+            if (Explode) continue;
         }
 
         //投票
@@ -648,7 +733,7 @@ void runtime::Game()
         emit Wait(temp);
         temp.clear();
 
-        AliveList = getAlivePlayerList(true);
+        AliveList = getAlivePlayerList();
 
         //猎人技能
         if (VoteCandidate.at(0) == HunterNo){
@@ -724,34 +809,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
-    int i = OfficerNo;
-    if (direction){
-        MakeMessage(1,10,-1,temp,"从警长右侧开始发言");
-        i = (i + 1) % player_num;
-        do{
-            if (seats.at(i)->getLife()){
-                MakeMessage(1,12,i,temp);
-                temp.clear();
-                temp.push_back(i);
-                emit Wait(temp);
-                temp.clear();
-            }
-            i = (i + 1) % player_num;
-        }while(i != OfficerNo);
-    }else{
-        MakeMessage(1,10,-1,temp,"从警长左侧开始发言");
-        i = (i - 1 + player_num) % player_num;
-        do{
-            if (seats.at(i)->getLife()){
-                MakeMessage(1,12,i,temp);
-                temp.clear();
-                temp.push_back(i);
-                emit Wait(temp);
-                temp.clear();
-            }
-            i = (i - 1 + player_num) % player_num;
-        }while(i != OfficerNo);
-    }
+    Direc = direction;
 }
 
 void runtime::DayVote(int voter, int voted)
