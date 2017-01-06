@@ -12,7 +12,6 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
     io.setDevice(&socket);
     id=_id;
     name=_name;
-    qDebug()<<id<<"connected\n";
 }
 void TcpSock::emitError(){
     Message message(0,0,0,0,1,id);

@@ -21,6 +21,7 @@ bool RoomSrv::event(QEvent *e){
         return QObject::event(e);
     Message tmp=*(Message *)e;
     if(tmp.getType()==1){
+        qDebug()<<"Get type 1";
         if(map.key(tmp.getSenderid(),-1)==-1)
             return false;
         tmp.setSenderid(map.key(tmp.getSenderid()));
@@ -100,7 +101,6 @@ void RoomSrv::processRuntimeMessage(Message msg){
     else if(msg.getType()==2){
         if(msg.getSubtype()==5){
             inGame=false;
-            allowExit=true;
             QVector<int> players=map.keys().toVector();
             openDiscussion(0,&players);
         }
@@ -114,10 +114,10 @@ bool RoomSrv::addPlayer(int id){
     map.insert(i,id);
     if(map.size()==num)
         allowJoin=false;
-    Message feedback(2,0,1,id,2,this->id);
+    Message feedback(2,0,1,id,2,getID());
     feedback.addArgument(1);
     emit emitMessage(feedback);
-    Message msg(0,4,0,0,2,this->id);
+    Message msg(0,4,0,0,2,getID());
     msg.addArgument(id);
     msg.addArgument(0);
     emit emitMessage(msg);
@@ -130,10 +130,10 @@ bool RoomSrv::removePlayer(bool force, int id){
     map.remove(map.key(id));
     if(inGame)
         rt.playerOffline(id);
-    Message feedback(2,3,1,id,2,this->id);
+    Message feedback(2,3,1,id,2,getID());
     feedback.addArgument(1);
     emit emitMessage(feedback);
-    Message msg(0,4,0,0,2,this->id);
+    Message msg(0,4,0,0,2,getID());
     msg.addArgument(id);
     msg.addArgument(1);
     emit emitMessage(msg);
@@ -147,7 +147,7 @@ bool RoomSrv::removePlayer(bool force, int id){
     return true;
 }
 void RoomSrv::startGame(){
-    allowExit=false;
+    allowExit=true;
     allowJoin=false;
     inGame=true;
     Message tmp(2,4);

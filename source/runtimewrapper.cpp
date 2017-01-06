@@ -16,6 +16,7 @@ void RuntimeWrapper::run()
 }
 bool RuntimeWrapper::processMessage(Message msg)
 {
+    qDebug()<<"In processMessage";
     if(msg.getType()==1){
         switch(msg.getSubtype()){
         case 6:
@@ -74,6 +75,7 @@ bool RuntimeWrapper::processMessage(Message msg)
         return true;
     }
     return false;
+    qDebug()<<"Out processMessage";
 }
 void RuntimeWrapper::waitForPlayer(QVector<int> i){
     waitLock.lock();
@@ -83,6 +85,7 @@ void RuntimeWrapper::waitForPlayer(QVector<int> i){
     waitLock.unlock();
 }
 void RuntimeWrapper::stopWaitForPlayer(int i){
+    qDebug()<<"In stopWaitForPlayer";
     waitLock.lock();
     if(waitList.contains(i))
         waitList.remove(waitList.indexOf(i));
@@ -92,6 +95,7 @@ void RuntimeWrapper::stopWaitForPlayer(int i){
         waitForResponse.wakeAll();
     }
     waitLock.unlock();
+    qDebug()<<"out waitForPlayer";
 }
 void RuntimeWrapper::playerOffline(int i){
     rt.RemovePlayer(i);

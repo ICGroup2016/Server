@@ -196,7 +196,7 @@ void runtime::Game()
         KilledTonight.push_back(WhisperResults.at(0));
         //杀死狼人讨论结果的玩家
 
-        if (Check()){ break;}
+        if (!Check()){ break;}
         for (int i = 0; i < WolfList.size(); i++)
         {
             MakeMessage(1,2,WolfList.at(i),temp,"狼人请闭眼");
@@ -394,7 +394,7 @@ void runtime::Game()
                                 MakeMessage(1,13,i,OfficerCandidateList,"请投票");
                                 temp.clear();
                                 temp.push_back(i);
-                                Wait(temp);
+                                emit Wait(temp);
                                 temp.clear();
                             }
                             //判断自爆
@@ -738,7 +738,7 @@ void runtime::OfficerCandidate(int candi)
 void runtime::MedicineResult(int res){
     if (res != -1){
         Medicine = false;
-        KilledTonight.pop_back();
+        KilledTonight.clear();
     }
 }
 
