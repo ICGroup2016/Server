@@ -64,7 +64,6 @@ private:
     bool SeeResultIsWolf;   //预言结果是否为狼人
 
     bool Check();     //判断游戏结束
-    bool CheckWinner();    //返回游戏结果
     void Assign();    //分配身份
     QVector <int> getAlivePlayerList(bool IsDay);   //返回存活玩家座位号列表
     QVector <int> getAllWolfs();        //返回存活狼座位号列表
