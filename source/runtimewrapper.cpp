@@ -46,9 +46,9 @@ bool RuntimeWrapper::processMessage(Message msg)
                 rt.OfficerCandidate(msg.getSenderid());
             break;
         case 13:
-            if(msg.getArgument().size()<2)
+            if(msg.getArgument().isEmpty())
                 return false;
-            rt.OfficerElection(msg.getArgument()[0],msg.getArgument()[1]);
+            rt.OfficerElection(msg.getSenderid(),msg.getArgument()[0]);
             break;
         case 14:
             if(msg.getArgument().isEmpty())
@@ -64,12 +64,15 @@ bool RuntimeWrapper::processMessage(Message msg)
             if(msg.getArgument().isEmpty())
                 return false;
             rt.DayVote(msg.getSenderid(),msg.getArgument()[0]);
+            break;
         case 18:
             if(msg.getArgument().isEmpty())
                 return false;
             rt.HunterKill(msg.getArgument()[0]);
+            break;
         case 19:
             onExplode(msg.getSenderid());
+            break;
         }
         stopWaitForPlayer(msg.getSenderid());
         return true;
@@ -112,10 +115,5 @@ void RuntimeWrapper::onExplode(int seat){
         msg.addArgument(1);
         emit emitMessage(msg);
     }
-    waitLock.lock();
-    if(!waitList.isEmpty()){
-        waitList.clear();
-        waitForResponse.wakeAll();
-    }
-    waitLock.unlock();
+    stopWaitForPlayer(-1);
 }

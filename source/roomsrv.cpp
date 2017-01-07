@@ -61,7 +61,7 @@ bool RoomSrv::event(QEvent *e){
                 tmp.setReceiverType(1);
                 tmp.setReceiverid(-2);
                 QVector<int> arg;
-                arg.append(tmp.getSenderid());
+                arg.append(map.key(tmp.getSenderid()));
                 tmp.setArgument(arg);
                 redirectMessage(tmp);
             }
