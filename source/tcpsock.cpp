@@ -17,8 +17,8 @@ void TcpSock::emitError(){
     Message message(0,0,0,0,1,id);
     message.setDetail(socket.errorString());
     socket.close();
-    emit emitMessage(message);
     this->deleteLater();
+    emit emitMessage(message);
 }
 void TcpSock::handleInput(){
     while(socket.bytesAvailable()){
@@ -27,7 +27,6 @@ void TcpSock::handleInput(){
         io>>message;
         if(!io.commitTransaction())
             return;
-        message.setSenderid(id);
         emit emitMessage(message);
     }
 }
