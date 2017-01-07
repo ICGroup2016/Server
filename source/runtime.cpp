@@ -11,7 +11,7 @@ bool runtime::Check()
     }
     for (int i = 0;i<player_num;i++){
         if (PlayerOnline.at(i)){
-            if (seats.at(i)->getJob()!=Wolf && seats.at(i)->getLife())
+            if (seats.at(i)->getJob()!=Wolf && seats.at(i)->getLife() && !KilledTonight.contains(i))
                 return true;
         }
     }
