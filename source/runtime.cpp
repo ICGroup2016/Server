@@ -436,6 +436,7 @@ void runtime::Game()
                         }
                         if (OfficerCandidateList.size() == 1){
                             MakeMessage(1,10,-1,temp,tr("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1));
+                            OfficerNo = OfficerCandidateList.at(0);
                         }else{
                             if (round == 0){
                                 MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
