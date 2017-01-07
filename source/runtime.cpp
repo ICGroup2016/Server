@@ -587,6 +587,11 @@ void runtime::Game()
 
         KilledTonight.clear();
 
+        for (int i = 0;i<player_num;i++){
+            VotePoll[i]=0;
+            VoteResults[i]=0;
+        }//清空投票信息
+
         //警长死亡传递警徽
         if (OfficerNo != -1)
             if (!(seats.at(OfficerNo)->getLife())){
