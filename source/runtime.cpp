@@ -1045,7 +1045,7 @@ void runtime::HunterKill(int x)
     temp.clear();
     if (x != -1){
         seats[x]->setLife(false);
-        MakeMessage(1,10,-1,temp,tr("%1号猎人死亡开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
+        MakeMessage(1,10,-1,temp,tr("%1号猎人死亡，开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
       /*switch(seats.at(x)->getJob()){
         case Wolf:
