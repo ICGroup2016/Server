@@ -46,6 +46,7 @@ private:
     bool Poison;   //毒药是否已使用
     int PoisonTarget;    //被毒者编号
     int ExplodeID;       //自爆者编号
+    int Contribution[12];           //决定MVP的贡献点
     QVector<bool> PlayerOnline;       //是否在线
     QVector<int> WhisperResults;  //狼人讨论结果
     QVector<int> AliveList;   //游戏进行中存活玩家的座位号
@@ -54,7 +55,6 @@ private:
     QVector<int> OfficerCandidateList;    //首日竞选警长的玩家列表
     int OfficerVotePoll[12];         //每个人得票数
     int OfficerVoteResults[12];     //警长竞选，谁投了谁
-    int Contribution[12];           //决定MVP的贡献点
     QVector<int> VoteCandidate;   //可以被投死的玩家
     int VoteResults[12];   //白天投票结果（谁投了谁）
     int VotePoll[12];   //每个人得票数
