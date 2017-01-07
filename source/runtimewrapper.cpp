@@ -22,7 +22,7 @@ bool RuntimeWrapper::processMessage(Message msg)
         case 6:
             if(msg.getArgument().isEmpty())
                 return false;
-            rt.WhisperResult(msg.getArgument()[0]);
+            rt.WhisperResult(msg.getSenderid(),msg.getArgument()[0]);
             break;
         case 7:
             if(msg.getArgument().isEmpty())
