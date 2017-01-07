@@ -111,8 +111,7 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     }
 }
 
-runtime::runtime(QObject * parent,int num)
-    :QObject(parent)
+runtime::runtime(QObject * parent,int num):QObject(parent)
 {
     player_num = num;
     Poison = true;
@@ -139,6 +138,7 @@ void runtime::Game()
     QVector<int> temp;
     QVector<int> VoteProcesser;
     int VoteMax = -1;
+    int round;
     temp.clear();
     VoteProcesser.clear();
 
@@ -368,7 +368,7 @@ void runtime::Game()
                         continue;
                     }
 
-
+                    round = 0;
                     do{
                         for (int i = 0; i < OfficerCandidateList.size(); i++){
                             if (seats.at(OfficerCandidateList.at(i))->getLife()){
@@ -437,9 +437,15 @@ void runtime::Game()
                         if (OfficerCandidateList.size() == 1){
                             MakeMessage(1,10,-1,temp,tr("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1));
                         }else{
-                            MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
+                            if (round == 0){
+                                MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
+                            }else{
+                                MakeMessage(1,10,-1,temp,"第二次出现并列！本轮游戏无警长！");
+                            }
                         }
-                    }while (OfficerCandidateList.size() != 1);  //持续投票，直到唯一一个警长出现
+                        round++;
+                    }while (OfficerCandidateList.size() != 1 && round < 2);  //持续投票，直到唯一一个警长出现，或者轮到第二轮
+
                     if (Explode && ExplodeID == -1) continue;
 
                     if (Explode){
@@ -570,6 +576,10 @@ void runtime::Game()
                     temp.push_back(OfficerNo);
                     emit Wait(temp);
                     temp.clear();
+                }else{
+                    OfficerNo=-1;
+                    temp.clear();
+                    MakeMessage(1,10,-1,temp,"警长掉线死亡，警徽作废");
                 }
             }
 
@@ -666,6 +676,7 @@ void runtime::Game()
 
         //投票
         VoteCandidate = AliveList;
+        round = 0;
         do{
             for (int i = 0; i<AliveList.size(); i++){
                 if (seats.at(AliveList.at(i))->getLife()){
@@ -675,7 +686,15 @@ void runtime::Game()
                     emit Wait(temp);
                     temp.clear();
                 }
+                //判断自爆
+                if (Explode){
+                    MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
+                    MakeMessage(1,17,ExplodeID,temp,"你死了");
+                    ExplodeID = -1;
+                    break;
+                }
             }
+            if (Explode) break;
             VoteMax = -1;
             VoteProcesser.clear();
             for (int i = 0; i < player_num; i++){
@@ -688,7 +707,17 @@ void runtime::Game()
                 }
             }
             VoteCandidate = VoteProcesser;
-        }while (VoteCandidate.size() != 1);
+            if (VoteCandidate.size()!=1){
+                temp.clear();
+                if (round == 0){
+                    MakeMessage(1,10,-1,temp,"出现平票！在并列最多的玩家中重新投票");
+                }else{
+                    MakeMessage(1,10,-1,temp,"再次出现平票！今天不处决任何人");
+                }
+            }
+            round++;
+        }while (VoteCandidate.size() != 1 && round<2);
+        if (Explode) continue;
 
         //广播通知X号玩家死亡
         MakeMessage(1,10,-1,temp,tr("%1号玩家票数最多，死亡！").arg(VoteCandidate.at(0)+1));
@@ -732,6 +761,60 @@ void runtime::Game()
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
     }
+  /* VoteMax=-1000;
+    VoteProcesser.clear();
+    srand(time(NULL));
+    temp.clear();
+    for (int i=0; i<player_num; i++){
+        if (Contribution[i]>VoteMax){
+            VoteMax=Contribution[i];
+            VoteProcesser.clear;
+            VoteProcesser.push_back(i);
+        }
+        else{
+            if (Contribution[i]==VoteMax){
+                if (Winner ^ seats.at(VoteProcesser[0])->getJob()==Wolf){
+                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                        VoteProcesser.clear();
+                        VoteProcesser.push_back(i);
+                    }
+                    else{
+                        if(Winner){
+                           if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                        else{
+                            if (rand()%2){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                    }
+                }
+                else{
+                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                        if(Winner){
+                            if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }else{
+                            if (rand()%2){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (int i=0; i<player_num; i++){
+        MakeMessage(1,10,-1,temp,tr("%1号玩家的得分为%2分").arg(i+1).arg(Contribution[i]));
+    }
+    MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));*/
 }
 
 void runtime::WhisperResult(int wolfseat, int seat){
@@ -992,7 +1075,7 @@ void runtime::HunterKill(int x)
     temp.clear();
     if (x != -1){
         seats[x]->setLife(false);
-        MakeMessage(1,10,-1,temp,tr("%1号猎人死亡开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
+        MakeMessage(1,10,-1,temp,tr("%1号猎人死亡，开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
       /*switch(seats.at(x)->getJob()){
         case Wolf:
