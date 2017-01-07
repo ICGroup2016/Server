@@ -111,8 +111,7 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     }
 }
 
-runtime::runtime(QObject * parent,int num)
-    :QObject(parent)
+runtime::runtime(QObject * parent,int num):QObject(parent)
 {
     player_num = num;
     Poison = true;
@@ -161,7 +160,7 @@ void runtime::Game()
             MakeMessage(1,3,WolfList.at(i),temp,"狼人请睁眼");
 
             //向狼人提供可杀死玩家列表
-            MakeMessage(1,4,WolfList.at(i),WolfList(),"请讨论夜间杀死的玩家");
+            MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
         emit Wait(getAllWolfs());
@@ -172,7 +171,7 @@ void runtime::Game()
         //逐个请求讨论结果
         for (int i = 0; i<WolfList.size(); i++){
             if (seats.at(WolfList.at(i))->getLife()){
-                MakeMessage(1,6,WolfList().at(i),getAlivePlayerList(),"请选择今晚杀死的玩家（狼人选择不一致时以被选择最多的玩家为准，并列最多时以座位号更低的狼人选择的目标为准）");
+                MakeMessage(1,6,WolfList.at(i),getAlivePlayerList(),"请选择今晚杀死的玩家（狼人选择不一致时以被选择最多的玩家为准，并列最多时以座位号更低的狼人选择的目标为准）");
                 temp.clear();
                 temp.push_back(WolfList.at(i));
                 emit Wait(temp);
@@ -645,7 +644,7 @@ void runtime::Game()
         }else{
             MakeMessage(1,10,-1,temp,tr("从%1号玩家开始发言").arg(AliveList.at(0)+1));
             for (int i = 0; i<AliveList.size(); i++){
-                if (seats.at(ALiveList.at(i))->getLife()){
+                if (seats.at(AliveList.at(i))->getLife()){
                     MakeMessage(1,12,AliveList.at(i),temp);
                     temp.clear();
                     temp.push_back(AliveList.at(i));
@@ -732,6 +731,60 @@ void runtime::Game()
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
     }
+  /* VoteMax=-1000;
+    VoteProcesser.clear();
+    srand(time(NULL));
+    temp.clear();
+    for (int i=0; i<player_num; i++){
+        if (Contribution[i]>VoteMax){
+            VoteMax=Contribution[i];
+            VoteProcesser.clear;
+            VoteProcesser.push_back(i);
+        }
+        else{
+            if (Contribution[i]==VoteMax){
+                if (Winner ^ seats.at(VoteProcesser[0])->getJob()==Wolf){
+                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                        VoteProcesser.clear();
+                        VoteProcesser.push_back(i);
+                    }
+                    else{
+                        if(Winner){
+                           if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                        else{
+                            if (rand()%2){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                    }
+                }
+                else{
+                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                        if(Winner){
+                            if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }else{
+                            if (rand()%2){
+                                VoteProcesser.clear();
+                                VoteProcesser.push_back(i);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (int i=0; i<player_num; i++){
+        MakeMessage(1,10,-1,temp,tr("%1号玩家的得分为%2分").arg(i+1).arg(Contribution[i]));
+    }
+    MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));*/
 }
 
 void runtime::WhisperResult(int wolfseat, int seat){
