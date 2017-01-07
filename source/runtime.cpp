@@ -11,7 +11,7 @@ bool runtime::Check()
     }
     for (int i = 0;i<player_num;i++){
         if (PlayerOnline.at(i)){
-            if (seats.at(i)->getJob()!=Wolf && seats.at(i)->getLife())
+            if (seats.at(i)->getJob()!=Wolf && seats.at(i)->getLife() && !KilledTonight.contains(i))
                 return true;
         }
     }
@@ -388,6 +388,26 @@ void runtime::Game()
                             }
                         }
                         if (Explode) break;
+
+                        for (int i = 0; i < OfficerCandidateList.size(); i++){
+                            if (seats.at(OfficerCandidateList.at(i))->getLife()){
+                                MakeMessage(1,5,OfficerCandidateList.at(i),temp,"是否仍然参选？");
+                                temp.clear();
+                                temp.push_back(OfficerCandidateList.at(i));
+                                emit Wait(temp);
+                                temp.clear();
+                            }
+                            //判断自爆
+                            if (Explode){
+                                MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
+                                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                                ExplodeID = -1;
+                                MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                                break;
+                            }
+                        }
+                        if (Explode) break;
+
 
                         for (int i = 0; i < player_num; i++){
                             if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
@@ -980,6 +1000,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
+    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));
     /*if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -1104,4 +1125,12 @@ void runtime::RemovePlayer(int x)
     }
     PlayerOnline[x] = false;
     seats.at(x)->setLife(false);
+}
+
+void runtime::QuitOfficerElection(int x)
+{
+    QVector<int> temp;
+    temp.clear();
+    OfficerCandidateList.removeAll(x);
+    MakeMessage(1,10,-1,temp,tr("%1号玩家退出警长竞选").arg(x));
 }
