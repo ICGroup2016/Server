@@ -84,6 +84,7 @@ public:
     bool setExplode(int x);  //x号玩家自爆
     void HunterKill(int x);  //猎人带走x号玩家
     void RemovePlayer(int x);    //某玩家断线
+    void QuitOfficerElection(int x);   //退出警长竞选
 
 signals:
     void SendMessage(Message);
