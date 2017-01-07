@@ -161,7 +161,7 @@ void runtime::Game()
             MakeMessage(1,3,WolfList.at(i),temp,"狼人请睁眼");
 
             //向狼人提供可杀死玩家列表
-            MakeMessage(1,4,WolfList.at(i),WolfList(),"请讨论夜间杀死的玩家");
+            MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
         emit Wait(getAllWolfs());
@@ -172,7 +172,7 @@ void runtime::Game()
         //逐个请求讨论结果
         for (int i = 0; i<WolfList.size(); i++){
             if (seats.at(WolfList.at(i))->getLife()){
-                MakeMessage(1,6,WolfList().at(i),getAlivePlayerList(),"请选择今晚杀死的玩家（狼人选择不一致时以被选择最多的玩家为准，并列最多时以座位号更低的狼人选择的目标为准）");
+                MakeMessage(1,6,WolfList.at(i),getAlivePlayerList(),"请选择今晚杀死的玩家（狼人选择不一致时以被选择最多的玩家为准，并列最多时以座位号更低的狼人选择的目标为准）");
                 temp.clear();
                 temp.push_back(WolfList.at(i));
                 emit Wait(temp);
@@ -645,7 +645,7 @@ void runtime::Game()
         }else{
             MakeMessage(1,10,-1,temp,tr("从%1号玩家开始发言").arg(AliveList.at(0)+1));
             for (int i = 0; i<AliveList.size(); i++){
-                if (seats.at(ALiveList.at(i))->getLife()){
+                if (seats.at(AliveList.at(i))->getLife()){
                     MakeMessage(1,12,AliveList.at(i),temp);
                     temp.clear();
                     temp.push_back(AliveList.at(i));
