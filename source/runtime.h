@@ -54,6 +54,7 @@ private:
     QVector<int> OfficerCandidateList;    //首日竞选警长的玩家列表
     int OfficerVotePoll[12];         //每个人得票数
     int OfficerVoteResults[12];     //警长竞选，谁投了谁
+    int Contribution[12];           //决定MVP的贡献点
     QVector<int> VoteCandidate;   //可以被投死的玩家
     int VoteResults[12];   //白天投票结果（谁投了谁）
     int VotePoll[12];   //每个人得票数
@@ -71,7 +72,7 @@ private:
 public:
     runtime(QObject * parent = 0,int num=0);  //构造函数，确定总人数、狼人人数
     void Game();    //游戏全过程
-    void WhisperResult(int seat);  //添加狼人讨论结果
+    void WhisperResult(int wolfseat, int seat);  //添加狼人讨论结果
     void OfficerCandidate(int candi);   //玩家是否参选警长
     void MedicineResult(int res);  //女巫解药是否使用
     void PoisonResult(int tar);  //女巫毒药对谁使用
