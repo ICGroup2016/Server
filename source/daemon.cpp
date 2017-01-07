@@ -169,7 +169,7 @@ void Daemon::announceRoomInfo(int receiver){
         return;
     }
     for(int i=0;i<connections.size();i++)
-        if(connections[i]){
+        if(connections[i].isNull()){
             msg.setReceiverid(connections[i]->getID());
             deliverMessage(msg);
         }
