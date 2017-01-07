@@ -11,7 +11,7 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
 void RuntimeWrapper::run()
 {
     rt.Game();
-    Message msg(2,5,3,roomID);
+    Message msg(2,5,1,-1);
     emit emitMessage(msg);
 }
 bool RuntimeWrapper::processMessage(Message msg)
@@ -114,6 +114,6 @@ void RuntimeWrapper::onExplode(int seat){
         Message msg(1,19,1,-1);
         msg.addArgument(1);
         emit emitMessage(msg);
+        stopWaitForPlayer(-1);
     }
-    stopWaitForPlayer(-1);
 }
