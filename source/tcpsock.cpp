@@ -12,14 +12,13 @@ TcpSock::TcpSock(QObject *parent,int _sockDescript, int _id, QString _name)
     io.setDevice(&socket);
     id=_id;
     name=_name;
-    qDebug()<<id<<"connected\n";
 }
 void TcpSock::emitError(){
     Message message(0,0,0,0,1,id);
     message.setDetail(socket.errorString());
     socket.close();
-    emit emitMessage(message);
     this->deleteLater();
+    emit emitMessage(message);
 }
 void TcpSock::handleInput(){
     while(socket.bytesAvailable()){
@@ -28,7 +27,6 @@ void TcpSock::handleInput(){
         io>>message;
         if(!io.commitTransaction())
             return;
-        message.setSenderid(id);
         emit emitMessage(message);
     }
 }
@@ -36,8 +34,6 @@ bool TcpSock::event(QEvent *e){
     if(e->type()!=(QEvent::Type)2333)
         return QObject::event(e);
     Message tmp=*(Message *)e;
-    qDebug()<<"Sending message to"<<tmp.getReceiverid();
-    qDebug()<<"Type:"<<tmp.getType()<<"\tSubType"<<tmp.getSubtype();
     QByteArray buff;
     QDataStream out(&buff,QIODevice::WriteOnly);
     out<<tmp;

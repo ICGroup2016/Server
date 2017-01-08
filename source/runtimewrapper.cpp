@@ -5,23 +5,29 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
 {
     isWaiting=false;
     roomID=id;
-    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::processRuntimeMessage,Qt::DirectConnection);
+    QObject::connect(&rt,&runtime::SendMessage,this,&RuntimeWrapper::emitMessage,Qt::DirectConnection);
     QObject::connect(&rt,&runtime::Wait,this,&RuntimeWrapper::waitForPlayer,Qt::DirectConnection);
 }
 void RuntimeWrapper::run()
 {
+    offlineList.clear();
     rt.Game();
-    Message msg(2,5,3,roomID);
+    offlineList.clear();
+    waitList.clear();
+    Message msg(2,5,1,-1);
     emit emitMessage(msg);
 }
 bool RuntimeWrapper::processMessage(Message msg)
 {
     if(msg.getType()==1){
         switch(msg.getSubtype()){
+        case 5:
+            rt.QuitOfficerElection(msg.getSenderid());
+            break;
         case 6:
             if(msg.getArgument().isEmpty())
                 return false;
-            rt.WhisperResult(msg.getArgument()[0]);
+            rt.WhisperResult(msg.getSenderid(),msg.getArgument()[0]);
             break;
         case 7:
             if(msg.getArgument().isEmpty())
@@ -45,9 +51,9 @@ bool RuntimeWrapper::processMessage(Message msg)
                 rt.OfficerCandidate(msg.getSenderid());
             break;
         case 13:
-            if(msg.getArgument().size()<2)
+            if(msg.getArgument().isEmpty())
                 return false;
-            rt.OfficerElection(msg.getArgument()[0],msg.getArgument()[1]);
+            rt.OfficerElection(msg.getSenderid(),msg.getArgument()[0]);
             break;
         case 14:
             if(msg.getArgument().isEmpty())
@@ -63,35 +69,30 @@ bool RuntimeWrapper::processMessage(Message msg)
             if(msg.getArgument().isEmpty())
                 return false;
             rt.DayVote(msg.getSenderid(),msg.getArgument()[0]);
+            break;
         case 18:
             if(msg.getArgument().isEmpty())
                 return false;
             rt.HunterKill(msg.getArgument()[0]);
+            break;
         case 19:
             onExplode(msg.getSenderid());
+            break;
         }
         stopWaitForPlayer(msg.getSenderid());
         return true;
     }
     return false;
 }
-void RuntimeWrapper::waitForPlayer(int i){
+void RuntimeWrapper::waitForPlayer(QVector<int> i){
     waitLock.lock();
-    if(i!=-1){
-        waitList.clear();
-        waitList.append(i);
-    }
+    waitList=i;
+    for(int i=0;i<offlineList.size();i++)
+        if(waitList.contains(offlineList[i]))
+            waitList.removeAt(waitList.indexOf(offlineList[i]));
     if(!waitList.isEmpty())
         waitForResponse.wait(&waitLock);
     waitLock.unlock();
-}
-void RuntimeWrapper::processRuntimeMessage(Message msg){
-    if(msg.getSubtype()==5){
-        waitLock.lock();
-        waitList=msg.getArgument();
-        waitLock.unlock();
-    }
-    emit emitMessage(msg);
 }
 void RuntimeWrapper::stopWaitForPlayer(int i){
     waitLock.lock();
@@ -106,6 +107,7 @@ void RuntimeWrapper::stopWaitForPlayer(int i){
 }
 void RuntimeWrapper::playerOffline(int i){
     rt.RemovePlayer(i);
+    offlineList.append(i);
     stopWaitForPlayer(i);
 }
 void RuntimeWrapper::onExplode(int seat){
@@ -118,5 +120,6 @@ void RuntimeWrapper::onExplode(int seat){
         Message msg(1,19,1,-1);
         msg.addArgument(1);
         emit emitMessage(msg);
+        stopWaitForPlayer(-1);
     }
 }
