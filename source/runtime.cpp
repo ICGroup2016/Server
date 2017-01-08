@@ -577,7 +577,7 @@ void runtime::Game()
             continue;
         }
 
-        if (Check()) break;
+        if (!Check()) break;
         //判断自爆
         if (Explode){
             MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));

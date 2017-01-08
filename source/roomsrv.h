@@ -35,7 +35,6 @@ private:
     QHash<int,int> map;
     QVector<int> audience;
     RuntimeWrapper rt;
-    QMutex messageLock;
 };
 
 #endif // ROOMSRV_H
