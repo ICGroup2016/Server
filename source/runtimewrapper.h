@@ -16,9 +16,8 @@ signals:
 protected:
     void run() Q_DECL_OVERRIDE;
 private:
-    void waitForPlayer(int);
+    void waitForPlayer(QVector<int>);
     void removePlayer(int);
-    void processRuntimeMessage(Message);
     void onExplode(int);
     int roomID;
     bool isWaiting;
@@ -26,6 +25,7 @@ private:
     QMutex waitLock;
     QWaitCondition waitForResponse;
     QVector<int> waitList;
+    QVector<int> offlineList;
 };
 
 #endif // RUNTIMEWRAPPER_H
