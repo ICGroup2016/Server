@@ -17,6 +17,31 @@ bool runtime::Check()
     }
     Winner = WolfWin;
     return false;
+    /*
+    if (getAllWolfs().size()==0){
+        Winner = ValligerWin;
+        return false;
+    }
+    if (!seats.at(SeerNo)->getLife() && !seats.at(WitchNo)->getLife()){
+        if (player_num>=6 && !seats.at(HunterNo)->getLife()){
+            Winner = WolfWin;
+            return false;
+        }
+        if (player_num<6){
+            Winner = WolfWin;
+            return false;
+        }
+    }
+    for (int i=0;i<player_num;i++){
+        if (PlayerOnline.at(i)){
+            if (seats.at(i)->getJob()==Valliger && seats.at(i)->getLife() && !KilledTonight.contains(i)){
+                return true;
+            }
+        }
+    }
+    Winner = WolfWin;
+    return false;
+    *///屠边Check
 }
 
 void runtime::Assign()
@@ -136,6 +161,7 @@ void runtime::Game()
     Assign();     //分配座位号和身份
 
     QVector<int> temp;
+    QVector<int> OfficerCandidateListTemp;
     QVector<int> VoteProcesser;
     int VoteMax = -1;
     int round;
@@ -164,7 +190,7 @@ void runtime::Game()
             MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
-        emit Wait(getAllWolfs());
+        emit Wait(WolfList);
 
         if (!Check()){ break;}
 
@@ -388,12 +414,12 @@ void runtime::Game()
                             }
                         }
                         if (Explode) break;
-
-                        for (int i = 0; i < OfficerCandidateList.size(); i++){
-                            if (seats.at(OfficerCandidateList.at(i))->getLife()){
-                                MakeMessage(1,5,OfficerCandidateList.at(i),temp,"是否仍然参选？");
+                        OfficerCandidateListTemp = OfficerCandidateList;
+                        for (int i = 0; i < OfficerCandidateListTemp.size(); i++){
+                            if (seats.at(OfficerCandidateListTemp.at(i))->getLife()){
+                                MakeMessage(1,5,OfficerCandidateListTemp.at(i),temp,"是否仍然参选？");
                                 temp.clear();
-                                temp.push_back(OfficerCandidateList.at(i));
+                                temp.push_back(OfficerCandidateListTemp.at(i));
                                 emit Wait(temp);
                                 temp.clear();
                             }
@@ -408,64 +434,75 @@ void runtime::Game()
                         }
                         if (Explode) break;
 
-
-                        for (int i = 0; i < player_num; i++){
-                            if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
-                                MakeMessage(1,13,i,OfficerCandidateList,"请投票");
-                                temp.clear();
-                                temp.push_back(i);
-                                emit Wait(temp);
-                                temp.clear();
-                            }
-                            //判断自爆
-                            if (Explode){
-                                MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
-                                MakeMessage(1,17,ExplodeID,temp,"你死了");
-                                ExplodeID = -1;
-                                MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                                break;
-                            }
-                        }
-                        if (Explode) break;
-
-                        VoteMax = -1;
-                        VoteProcesser.clear();
-                        for (int i = 0; i < player_num; i++){
-                            if (OfficerCandidateList.contains(i) && OfficerVotePoll[i] >= VoteMax){
-                                if (OfficerVotePoll[i] > VoteMax){
-                                    VoteMax = OfficerVotePoll[i];
-                                    VoteProcesser.clear();
-                                }
-                                VoteProcesser.push_back(i);
-                            }
-                        }
-                        OfficerCandidateList = VoteProcesser;
-                        MakeMessage(1,10,-1,temp,"本次投票结果如下：");
-                        for (int i = 0; i < player_num; i++){
-                            if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
-                                MakeMessage(1,10,-1,temp,tr("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults[i]+1));
-                            }
-                        }
-                        //判断自爆
-                        if (Explode){
-                            MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
-                            MakeMessage(1,17,ExplodeID,temp,"你死了");
-                            ExplodeID = -1;
-                            MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
-                            break;
-                        }
-                        if (OfficerCandidateList.size() == 1){
-                            MakeMessage(1,10,-1,temp,tr("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1));
-                            OfficerNo = OfficerCandidateList.at(0);
-                        }else{
-                            if (round == 0){
-                                MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
+                        if (OfficerCandidateList.size()<=1){
+                            temp.clear();
+                            if (OfficerCandidateList.size()==1){
+                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)));
+                                OfficerNo=OfficerCandidateList.at(0);
                             }else{
-                                MakeMessage(1,10,-1,temp,"第二次出现并列！本轮游戏无警长！");
+                                MakeMessage(1,10,-1,temp,"所有玩家均退选，警徽作废！");
+                                OfficerNo=-1;
                             }
+                            break;
+                        }else{
+                            for (int i = 0; i < player_num; i++){
+                                if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
+                                    MakeMessage(1,13,i,OfficerCandidateList,"请投票");
+                                    temp.clear();
+                                    temp.push_back(i);
+                                    emit Wait(temp);
+                                    temp.clear();
+                                }
+                                //判断自爆
+                                if (Explode){
+                                    MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
+                                    MakeMessage(1,17,ExplodeID,temp,"你死了");
+                                    ExplodeID = -1;
+                                    MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                                    break;
+                                }
+                            }
+                            if (Explode) break;
+
+                            VoteMax = -1;
+                            VoteProcesser.clear();
+                            for (int i = 0; i < player_num; i++){
+                                if (OfficerCandidateList.contains(i) && OfficerVotePoll[i] >= VoteMax){
+                                    if (OfficerVotePoll[i] > VoteMax){
+                                        VoteMax = OfficerVotePoll[i];
+                                        VoteProcesser.clear();
+                                    }
+                                    VoteProcesser.push_back(i);
+                                }
+                            }
+                            OfficerCandidateList = VoteProcesser;
+                            MakeMessage(1,10,-1,temp,"本次投票结果如下：");
+                            for (int i = 0; i < player_num; i++){
+                                if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
+                                    MakeMessage(1,10,-1,temp,tr("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults[i]+1));
+                                }
+                            }
+                            //判断自爆
+                            if (Explode){
+                                MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
+                                MakeMessage(1,17,ExplodeID,temp,"你死了");
+                                ExplodeID = -1;
+                                MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
+                                break;
+                            }
+                            if (OfficerCandidateList.size() == 1){
+                                MakeMessage(1,10,-1,temp,tr("%1号玩家成为警长！").arg(OfficerCandidateList.at(0)+1));
+                                OfficerNo = OfficerCandidateList.at(0);
+                            }else{
+                                if (round == 0){
+                                    MakeMessage(1,10,-1,temp,"出现并列！请在并列最高票者中再次投票（本轮未当选的参选者下轮可投票）");
+                                }else{
+                                    MakeMessage(1,10,-1,temp,"第二次出现并列！本轮游戏无警长！");
+                                }
+                            }
+                            round++;
                         }
-                        round++;
-                    }while (OfficerCandidateList.size() != 1 && round < 2);  //持续投票，直到唯一一个警长出现，或者轮到第二轮
+                    }while (OfficerCandidateList.size() > 1 && round < 2);  //持续投票，直到唯一一个警长出现，或者轮到第二轮
 
                     if (Explode && ExplodeID == -1) continue;
 
@@ -485,9 +522,9 @@ void runtime::Game()
                         }
                         //确认死亡
                         for (int i = 0; i< KilledTonight.size(); i++){
-                        seats[KilledTonight.at(i)]->setLife(false);
-                        MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
-                    }
+                            seats[KilledTonight.at(i)]->setLife(false);
+                            MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
+                        }
                         continue;
                     }
                 }else{
@@ -541,6 +578,7 @@ void runtime::Game()
             }
         }
 
+        if (Check()) break;
         //判断自爆
         if (Explode){
             MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
@@ -586,6 +624,11 @@ void runtime::Game()
         WolfList = getAllWolfs();
 
         KilledTonight.clear();
+
+        for (int i = 0;i<player_num;i++){
+            VotePoll[i]=0;
+            VoteResults[i]=0;
+        }//清空投票信息
 
         //警长死亡传递警徽
         if (OfficerNo != -1)
@@ -774,7 +817,6 @@ void runtime::Game()
             temp.clear();
         }
     }
-
     MakeMessage(1,3,-1,temp,"游戏结束！");
     if (Winner){
         MakeMessage(1,10,-1,temp,"村民获胜！");
@@ -837,6 +879,7 @@ void runtime::Game()
     }
     MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));*/
 }
+
 
 void runtime::WhisperResult(int wolfseat, int seat){
     if (!WhisperResults.contains(seat)){
@@ -1118,8 +1161,10 @@ void runtime::RemovePlayer(int x)
 {
     QVector<int> temp;
     temp.clear();
-    MakeMessage(1,10,-1,temp,tr("%1号玩家因掉线死亡").arg(x+1));
-    if (x == OfficerNo){
+    if(seats.at(OfficerNo)->getLife()){
+        MakeMessage(1,10,-1,temp,tr("%1号玩家因掉线死亡").arg(x+1));
+    }
+    if (x == OfficerNo && seats.at(OfficerNo)->getLife()){
         MakeMessage(1,10,-1,temp,"警长掉线死亡，警徽作废");
         OfficerNo = -1;
     }
