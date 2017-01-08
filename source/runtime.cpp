@@ -195,6 +195,7 @@ void runtime::Game()
             MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
+        MakeMessage(1,10,-1,temp,"狼人正在讨论，请耐心等待");
         emit Wait(WolfList);
 
         if (!Check()){ break;}
@@ -340,6 +341,7 @@ void runtime::Game()
             //确认死亡
             for (int i = 0; i< KilledTonight.size(); i++){
                 seats[KilledTonight.at(i)]->setLife(false);
+                seats[KilledTonight.at(i)]->setDeathDay(Day);
                 MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
             }
             MakeMessage(1,17,ExplodeID,temp,"你死了");
@@ -480,13 +482,13 @@ void runtime::Game()
                                     VoteProcesser.push_back(i);
                                 }
                             }
-                            OfficerCandidateList = VoteProcesser;
                             MakeMessage(1,10,-1,temp,"本次投票结果如下：");
                             for (int i = 0; i < player_num; i++){
                                 if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
                                     MakeMessage(1,10,-1,temp,tr("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults[i]+1));
                                 }
                             }
+                            OfficerCandidateList = VoteProcesser;
                             //判断自爆
                             if (Explode){
                                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
@@ -528,6 +530,7 @@ void runtime::Game()
                         //确认死亡
                         for (int i = 0; i< KilledTonight.size(); i++){
                             seats[KilledTonight.at(i)]->setLife(false);
+                            seats[KilledTonight.at(i)]->setDeathDay(Day);
                             MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
                         }
                         continue;
@@ -560,6 +563,7 @@ void runtime::Game()
         //确认死亡
         for (int i = 0; i< KilledTonight.size(); i++){
             seats[KilledTonight.at(i)]->setLife(false);
+            seats[KilledTonight.at(i)]->setDeathDay(Day);
             //猎人如不是被毒死的，则发动技能
             if (KilledTonight.contains(HunterNo)){
                 if (PoisonTarget != HunterNo && PlayerOnline.contains(HunterNo)){
@@ -690,6 +694,7 @@ void runtime::Game()
                         break;
                     }
                     if (seats.at(i)->getLife()){
+                        MakeMessage(1,10,-1,temp,tr("请%1号玩家发言").arg(i+1));
                         MakeMessage(1,12,i,temp);
                         temp.clear();
                         temp.push_back(i);
@@ -710,6 +715,7 @@ void runtime::Game()
                         break;
                     }
                     if (seats.at(i)->getLife()){
+                        MakeMessage(1,10,-1,temp,tr("请%1号玩家发言").arg(i+1));
                         MakeMessage(1,12,i,temp);
                         temp.clear();
                         temp.push_back(i);
@@ -743,6 +749,7 @@ void runtime::Game()
         }
 
         //投票
+        AliveList = getAlivePlayerList();
         VoteCandidate = AliveList;
         round = 0;
         do{
@@ -792,6 +799,7 @@ void runtime::Game()
 
         //杀死被投的玩家，该玩家发表遗言
         seats[VoteCandidate.at(0)]->setLife(false);
+        seats[VoteCandidate.at(0)]->setDeathDay(Day);
        //猎人技能
         if (VoteCandidate.at(0) == HunterNo && PlayerOnline.contains(HunterNo)){
             MakeMessage(1,18,HunterNo,AliveList,"请选择带走的对象");
@@ -850,9 +858,15 @@ void runtime::Game()
                             }
                         }
                         else{
-                            if (rand()%2){
+                            if (seats.at(i)->getDeathDay()>seats.at(VoteProcesser[0])->getDeathDay()) {
                                 VoteProcesser.clear();
                                 VoteProcesser.push_back(i);
+                            }
+                            else{
+                                if (rand()%2){
+                                    VoteProcesser.clear();
+                                    VoteProcesser.push_back(i);
+                                }
                             }
                         }
                     }
@@ -865,9 +879,14 @@ void runtime::Game()
                                 VoteProcesser.push_back(i);
                             }
                         }else{
-                            if (rand()%2){
+                            if (seats.at(i)->getDeathDay()>seats.at(VoteProcesser[0])->getDeathDay()){
                                 VoteProcesser.clear();
                                 VoteProcesser.push_back(i);
+                            }else{
+                                if (rand()%2){
+                                    VoteProcesser.clear();
+                                    VoteProcesser.push_back(i);
+                                }
                             }
                         }
                     }
@@ -1045,7 +1064,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
-    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));
+    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted+1));
     if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -1131,6 +1150,7 @@ bool runtime::setExplode(int x)
         Explode = true;
         ExplodeID = x;
         seats[x]->setLife(false);
+        seats[x]->setDeathDay(Day);
         return true;
     }
     return false;
@@ -1142,6 +1162,7 @@ void runtime::HunterKill(int x)
     temp.clear();
     if (x != -1){
         seats[x]->setLife(false);
+        seats[x]->setDeathDay(Day);
         MakeMessage(1,10,-1,temp,tr("%1号猎人死亡，开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
         switch(seats.at(x)->getJob()){
@@ -1172,6 +1193,7 @@ void runtime::RemovePlayer(int x)
     }
     PlayerOnline[x] = false;
     seats.at(x)->setLife(false);
+    seats.at(x)->setDeathDay(Day);
 }
 
 void runtime::QuitOfficerElection(int x)
