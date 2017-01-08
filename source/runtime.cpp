@@ -17,6 +17,31 @@ bool runtime::Check()
     }
     Winner = WolfWin;
     return false;
+    /*
+    if (getAllWolfs().size()==0){
+        Winner = ValligerWin;
+        return false;
+    }
+    if (!seats.at(SeerNo)->getLife() && !seats.at(WitchNo)->getLife()){
+        if (player_num>=6 && !seats.at(HunterNo)->getLife()){
+            Winner = WolfWin;
+            return false;
+        }
+        if (player_num<6){
+            Winner = WolfWin;
+            return false;
+        }
+    }
+    for (int i=0;i<player_num;i++){
+        if (PlayerOnline.at(i)){
+            if (seats.at(i)->getJob()==Valliger && seats.at(i)->getLife() && !KilledTonight.contains(i)){
+                return true;
+            }
+        }
+    }
+    Winner = WolfWin;
+    return false;
+    *///屠边Check
 }
 
 void runtime::Assign()
@@ -165,7 +190,7 @@ void runtime::Game()
             MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
-        emit Wait(getAllWolfs());
+        emit Wait(WolfList);
 
         if (!Check()){ break;}
 
