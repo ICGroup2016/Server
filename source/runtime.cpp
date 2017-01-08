@@ -136,6 +136,11 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     }
 }
 
+bool runtime::xxor(bool a, bool b)
+{
+    return ((!a)&&(b))||((!b)&&(a));
+}
+
 runtime::runtime(QObject * parent,int num):QObject(parent)
 {
     player_num = num;
@@ -819,7 +824,7 @@ void runtime::Game()
     }
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
-    }/*
+    }
     VoteMax=-1000;
     VoteProcesser.clear();
     srand(time(NULL));
@@ -827,13 +832,13 @@ void runtime::Game()
     for (int i=0; i<player_num; i++){
         if (Contribution[i]>VoteMax){
             VoteMax=Contribution[i];
-            VoteProcesser.clear;
+            VoteProcesser.clear();
             VoteProcesser.push_back(i);
         }
         else{
             if (Contribution[i]==VoteMax){
-                if (Winner ^ seats.at(VoteProcesser[0])->getJob()==Wolf){
-                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                if (xxor((Winner),(seats.at(VoteProcesser[0])->getJob()==Wolf))){
+                    if (xxor((!Winner),(seats.at(i)->getJob()==Wolf))){
                         VoteProcesser.clear();
                         VoteProcesser.push_back(i);
                     }
@@ -853,7 +858,7 @@ void runtime::Game()
                     }
                 }
                 else{
-                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                    if (xxor((!Winner),(seats.at(i)->getJob()==Wolf))){
                         if(Winner){
                             if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
                                 VoteProcesser.clear();
@@ -873,13 +878,13 @@ void runtime::Game()
     for (int i=0; i<player_num; i++){
         MakeMessage(1,10,-1,temp,tr("%1号玩家的得分为%2分").arg(i+1).arg(Contribution[i]));
     }
-    MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));*/
+    MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));
 }
 
 void runtime::WhisperResult(int wolfseat, int seat){
     if (!WhisperResults.contains(seat)){
         WhisperResults.push_back(seat);
-    }/*
+    }
       switch(seats.at(seat)->getJob()){
       case Wolf:
           Contribution[wolfseat]-=4;
@@ -893,7 +898,7 @@ void runtime::WhisperResult(int wolfseat, int seat){
       case Valliger:
           Contribution[wolfseat]+=1;
           break;
-      }*/
+      }
 }
 
 void runtime::OfficerCandidate(int candi)
@@ -904,7 +909,7 @@ void runtime::OfficerCandidate(int candi)
 void runtime::MedicineResult(int res){
     if (res != -1){
         Medicine = false;
-        KilledTonight.clear();/*
+        KilledTonight.clear();
           switch(seats.at(res)->getJob()){
           case Wolf:
               Contribution[WitchNo]-=1+(player_num-3)/2-getAllWolfs().size();
@@ -916,7 +921,7 @@ void runtime::MedicineResult(int res){
           case Valliger:
               Contribution[WitchNo]+=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
               break;
-          }*/
+          }
     }
 }
 
@@ -925,7 +930,7 @@ void runtime::PoisonResult(int tar){
         Poison = false;
         if (!KilledTonight.contains(tar))
             KilledTonight.push_back(tar);
-        PoisonTarget = tar;/*
+        PoisonTarget = tar;
           switch(seats.at(tar)->getJob()){
           case Wolf:
               Contribution[WitchNo]+=1+(player_num-3)/2-getAllWolfs().size();
@@ -937,7 +942,7 @@ void runtime::PoisonResult(int tar){
           case Valliger:
               Contribution[WitchNo]-=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
               break;
-          }*/
+          }
     }
 }
 
@@ -949,7 +954,7 @@ void runtime::SeeResult(int res)
 void runtime::OfficerElection(int voter, int voted)
 {
     OfficerVoteResults[voter] = voted;
-    OfficerVotePoll[voted] += 1;/*
+    OfficerVotePoll[voted] += 1;
     if (seats.at(voter)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -984,7 +989,7 @@ void runtime::OfficerElection(int voter, int voted)
                 case Wolf:
                     Contribution[voter]-=4;
                     break;
-            }*/
+            }
 }
 
 void runtime::OfficerPass(int receiver)
@@ -996,7 +1001,7 @@ void runtime::OfficerPass(int receiver)
         MakeMessage(1,10,-1,temp,"警徽撕毁，此后游戏无警长");
     }else{
         MakeMessage(1,10,-1,temp,tr("警长变为%1号玩家").arg(receiver+1));
-    }/*
+    }
     if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(receiver)->getJob()){
         case Seer:
@@ -1017,7 +1022,8 @@ void runtime::OfficerPass(int receiver)
             case Wolf:
                 Contribution[OfficerNo]-=5;
                 break;
-            }else switch(){
+            }
+    }else switch(seats.at(receiver)->getJob()){
                     case Seer:
                         Contribution[OfficerNo]+=3;
                     case Witch:
@@ -1031,7 +1037,6 @@ void runtime::OfficerPass(int receiver)
                         Contribution[OfficerNo]-=4;
                         break;
                 }
-    }*/
 }
 
 void runtime::OfficerDecide(int voted, bool direction)
@@ -1040,7 +1045,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
-    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));/*
+    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));
     if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -1075,14 +1080,14 @@ void runtime::OfficerDecide(int voted, bool direction)
                 case Wolf:
                     Contribution[OfficerNo]+=5;
                     break;
-            }*/
+            }
     Direc = direction;
 }
 
 void runtime::DayVote(int voter, int voted)
 {
     VoteResults[voter] = voted;
-    VotePoll[voted]+=2;/*
+    VotePoll[voted]+=2;
     if (seats.at(voter)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -1117,7 +1122,7 @@ void runtime::DayVote(int voter, int voted)
                 case Wolf:
                     Contribution[voter]+=4;
                     break;
-            }*/
+            }
 }
 
 bool runtime::setExplode(int x)
@@ -1139,7 +1144,7 @@ void runtime::HunterKill(int x)
         seats[x]->setLife(false);
         MakeMessage(1,10,-1,temp,tr("%1号猎人死亡，开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
         MakeMessage(1,17,x,temp,"你死了");
-        /*switch(seats.at(x)->getJob()){
+        switch(seats.at(x)->getJob()){
         case Wolf:
             Contribution[HunterNo]+=1+(player_num-3)/2-getAllWolfs().size();
             break;
@@ -1150,7 +1155,7 @@ void runtime::HunterKill(int x)
         case Valliger:
             Contribution[HunterNo]-=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
             break;
-        }*/
+        }
     }
 }
 
