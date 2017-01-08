@@ -345,7 +345,6 @@ void runtime::Game()
                 MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
             }
             MakeMessage(1,17,ExplodeID,temp,"你死了");
-            Explode = false;
             ExplodeID = -1;
             continue;
         }
@@ -358,7 +357,6 @@ void runtime::Game()
             if (Explode){
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
-                Explode = false;
                 ExplodeID = -1;
                 MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                 continue;
@@ -371,7 +369,6 @@ void runtime::Game()
             if (Explode){
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
-                Explode = false;
                 ExplodeID = -1;
                 MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                 continue;
@@ -383,7 +380,6 @@ void runtime::Game()
                 if (Explode){
                     MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                     MakeMessage(1,17,ExplodeID,temp,"你死了");
-                    Explode = false;
                     ExplodeID = -1;
                     continue;
                 }
@@ -395,7 +391,6 @@ void runtime::Game()
                     if (Explode){
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
-                        Explode = false;
                         ExplodeID = -1;
                         MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                         continue;
@@ -514,7 +509,6 @@ void runtime::Game()
                     if (Explode && ExplodeID == -1) continue;
 
                     if (Explode){
-                        Explode = false;
                         //公布死亡情况
                         switch(KilledTonight.size()){
                         case 0:
@@ -541,7 +535,6 @@ void runtime::Game()
                     if (Explode){
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
-                        Explode = false;
                         ExplodeID = -1;
                         continue;
                     }
@@ -592,7 +585,6 @@ void runtime::Game()
             MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
             MakeMessage(1,17,ExplodeID,temp,"你死了");
             ExplodeID = -1;
-            Explode = false;
             continue;
         }
 
@@ -662,7 +654,6 @@ void runtime::Game()
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
                 ExplodeID = -1;
-                Explode = false;
                 continue;
             }
             MakeMessage(1,10,-1,temp,"下面请警长归票、发言并决定发言方向");
@@ -678,7 +669,6 @@ void runtime::Game()
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
                 ExplodeID = -1;
-                Explode = false;
                 continue;
             }
             if (Direc){
@@ -690,7 +680,6 @@ void runtime::Game()
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
                         ExplodeID = -1;
-                        Explode = false;
                         break;
                     }
                     if (seats.at(i)->getLife()){
@@ -702,7 +691,9 @@ void runtime::Game()
                         temp.clear();
                     }
                 }
-                if (Explode) continue;
+                if (Explode){
+                    continue;
+                }
             }else{
                 MakeMessage(1,10,-1,temp,"从警长左侧开始发言");
                 for (int i = (OfficerNo - 1 + player_num) % player_num; i != OfficerNo; i = (i - 1 + player_num) % player_num){
@@ -711,7 +702,6 @@ void runtime::Game()
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
                         ExplodeID = -1;
-                        Explode = false;
                         break;
                     }
                     if (seats.at(i)->getLife()){
@@ -741,7 +731,6 @@ void runtime::Game()
                     MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                     MakeMessage(1,17,ExplodeID,temp,"你死了");
                     ExplodeID = -1;
-                    Explode = false;
                     break;
                 }
             }
