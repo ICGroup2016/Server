@@ -15,9 +15,11 @@ class player{
 private:
     Job occu;
     bool IsAlive;
+    int DeathDay;
 public:
     player(){
         IsAlive = true;
+        DeathDay = 15;
     }
     void setLife(bool l){
         IsAlive = l;
@@ -30,6 +32,12 @@ public:
     }
     Job getJob(){
         return occu;
+    }
+    void setDeathDay(int d){
+        DeathDay = d;
+    }
+    int getDeathDay(){
+        return DeathDay;
     }
 };
 
