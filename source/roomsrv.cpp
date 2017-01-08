@@ -121,7 +121,6 @@ bool RoomSrv::addPlayer(int id){
     msg.addArgument(id);
     msg.addArgument(0);
     emit emitMessage(msg);
-    qDebug()<<"Player"<<id<<"added in room"<<getID();
     sendRoomInfo(-1);
     return true;
 }
