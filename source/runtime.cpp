@@ -443,8 +443,8 @@ void runtime::Game()
                                 MakeMessage(1,10,-1,temp,"所有玩家均退选，警徽作废！");
                                 OfficerNo=-1;
                             }
+                            break;
                         }else{
-
                             for (int i = 0; i < player_num; i++){
                                 if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
                                     MakeMessage(1,13,i,OfficerCandidateList,"请投票");
@@ -502,7 +502,7 @@ void runtime::Game()
                             }
                             round++;
                         }
-                    }while (OfficerCandidateList.size() != 1 && round < 2);  //持续投票，直到唯一一个警长出现，或者轮到第二轮
+                    }while (OfficerCandidateList.size() > 1 && round < 2);  //持续投票，直到唯一一个警长出现，或者轮到第二轮
 
                     if (Explode && ExplodeID == -1) continue;
 
