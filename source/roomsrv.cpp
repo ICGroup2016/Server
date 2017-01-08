@@ -21,7 +21,6 @@ bool RoomSrv::event(QEvent *e){
         return QObject::event(e);
     Message tmp=*(Message *)e;
     if(tmp.getType()==1){
-        qDebug()<<"Get type 1";
         if(map.key(tmp.getSenderid(),-1)==-1)
             return false;
         tmp.setSenderid(map.key(tmp.getSenderid()));
@@ -53,7 +52,7 @@ bool RoomSrv::event(QEvent *e){
             removePlayer(tmp.getArgument()[0],tmp.getSenderid());
             break;
         case 6:
-            sendRoomInfo(tmp.getSenderid());
+            sendRoomInfo(map.key(tmp.getSenderid(),-1));
             break;
         case 7:
             if(tmp.getArgument().isEmpty())
@@ -62,7 +61,7 @@ bool RoomSrv::event(QEvent *e){
                 tmp.setReceiverType(1);
                 tmp.setReceiverid(-2);
                 QVector<int> arg;
-                arg.append(tmp.getSenderid());
+                arg.append(map.key(tmp.getSenderid()));
                 tmp.setArgument(arg);
                 redirectMessage(tmp);
             }
@@ -79,6 +78,7 @@ bool RoomSrv::event(QEvent *e){
             if(speakerCount==0)
                 inDiscussion=false;
         }
+        return true;
     }
     return false;
 }
@@ -121,6 +121,7 @@ bool RoomSrv::addPlayer(int id){
     msg.addArgument(id);
     msg.addArgument(0);
     emit emitMessage(msg);
+    qDebug()<<"Player"<<id<<"added in room"<<getID();
     sendRoomInfo(-1);
     return true;
 }

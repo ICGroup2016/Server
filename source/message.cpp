@@ -58,10 +58,10 @@ QVector<int> Message::getArgument()const{
     return arguments;
 }
 QDataStream& operator <<(QDataStream &str, Message &msg){
-    str<<msg.type<<msg.subtype<<msg.receivertype<<msg.receiverid<<msg.detail<<msg.arguments;
+    str<<msg.type<<msg.subtype<<msg.receivertype<<msg.receiverid<<msg.sendertype<<msg.senderid<<msg.detail<<msg.arguments;
     return str;
 }
 QDataStream& operator >>(QDataStream &str, Message &msg){
-    str>>msg.type>>msg.subtype>>msg.receivertype>>msg.receiverid>>msg.detail>>msg.arguments;
+    str>>msg.type>>msg.subtype>>msg.receivertype>>msg.receiverid>>msg.sendertype>>msg.senderid>>msg.detail>>msg.arguments;
     return str;
 }

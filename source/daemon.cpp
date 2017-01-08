@@ -39,6 +39,7 @@ void Daemon::incomingConnection(qintptr _descriptr){
     Message msg(0,3,1,id,0,0);
     msg.addArgument(id);
     deliverMessage(msg);
+    announceRoomInfo(id);
 }
 bool Daemon::event(QEvent *e){
     if(e->type()!=(QEvent::Type)2333)
@@ -62,14 +63,15 @@ bool Daemon::event(QEvent *e){
             if(tmp.getArgument().size()<2)
                 return false;
             if(tmp.getArgument()[1]){
-                map[tmp.getArgument()[0]]=-1;
+                if(map.contains(tmp.getArgument()[0]))
+                    map[tmp.getArgument()[0]]=-1;
                 for(int i=0;i<roominfo.size();i++)
                     if(roominfo[i].first==tmp.getSenderid()){
                         roominfo[i].second[1]--;
                         if(roominfo[i].second[1]==0){
                             roominfo.removeAt(i);
                             for(int i=0;i<rooms.size();i++)
-                                if(!rooms[i]||rooms[i]->getID()==tmp.getSenderid()){
+                                if(rooms[i].isNull()||rooms[i]->getID()==tmp.getSenderid()){
                                     rooms.removeAt(i);
                                     break;
                                 }
@@ -94,13 +96,11 @@ bool Daemon::event(QEvent *e){
 void Daemon::onNetworkError(Message msg){
     int id=msg.getSenderid();
     qDebug()<<id<<" network error:"<<msg.getDetail()<<"!\n";
-    for(int i=0;i<connections.size();i++)
-        if(!connections[i]){
+    for(int i=0;i<connections.size();i++){
+        if(connections[i].isNull()||connections[i]->getID()==id){
             connections.removeAt(i);
         }
-        else if(connections[i]->getID()==id){
-            connections.removeAt(i);
-        }
+    }
     if(map[id]!=-1){
         Message msg(2,3,2,map[id],1,id);
         msg.addArgument(1);
@@ -138,13 +138,15 @@ void Daemon::deliverMessage(Message msg){
         break;
     case 1:
         for(int i=0;i<connections.size();i++)
-            if(connections[i]&&connections[i]->getID()==tmp->getReceiverid())
-                QCoreApplication::postEvent(connections[i],tmp);
+            if(!connections[i].isNull())
+                if(connections[i]->getID()==tmp->getReceiverid())
+                    QCoreApplication::postEvent(connections[i],tmp);
         break;
     case 2:
         for(int i=0;i<rooms.size();i++)
-            if(rooms[i]->getID()==tmp->getReceiverid())
-                QCoreApplication::postEvent(rooms[i],tmp);
+            if(!rooms[i].isNull())
+                if(rooms[i]->getID()==tmp->getReceiverid())
+                    QCoreApplication::postEvent(rooms[i],tmp);
         break;
     }
 }
@@ -167,7 +169,7 @@ void Daemon::announceRoomInfo(int receiver){
         return;
     }
     for(int i=0;i<connections.size();i++)
-        if(connections[i]){
+        if(!connections[i].isNull()){
             msg.setReceiverid(connections[i]->getID());
             deliverMessage(msg);
         }

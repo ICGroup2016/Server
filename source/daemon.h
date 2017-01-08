@@ -18,9 +18,9 @@ private:
     void onNetworkError(Message);
     void announceRoomInfo(int);
     QVector<int> genRoomInfo();
-    QVector<QThread*> pool;
-    QVector<TcpSock*> connections;
-    QVector<RoomSrv*> rooms;
+    QVector<QPointer<QThread>> pool;
+    QVector<QPointer<TcpSock>> connections;
+    QVector<QPointer<RoomSrv>> rooms;
     QVector<QPair<int,QVector<int> > > roominfo;
     QHash<int,int> map;
 };
