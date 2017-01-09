@@ -252,7 +252,7 @@ void runtime::Game()
             if (Medicine)
             {
                 if (Day == 0 && seats.at(WitchNo)->getLife()){
-                    MakeMessage(1,7,WitchNo,WhisperResults,"今晚，他死了，你有一瓶解药，是否要救？");
+                    MakeMessage(1,7,WitchNo,KilledTonight,"今晚，他死了，你有一瓶解药，是否要救？");
                     temp.clear();
                     temp.push_back(WitchNo);
                     emit Wait(temp);
@@ -789,26 +789,26 @@ void runtime::Game()
                 }else{
                     MakeMessage(1,10,-1,temp,"再次出现平票！今天不处决任何人");
                 }
+            }else{
+                //广播通知X号玩家死亡
+                MakeMessage(1,10,-1,temp,tr("%1号玩家票数最多，死亡！").arg(VoteCandidate.at(0)+1));
+
+                //杀死被投的玩家，该玩家发表遗言
+                seats[VoteCandidate.at(0)]->setLife(false);
+                seats[VoteCandidate.at(0)]->setDeathDay(Day);
+               //猎人技能
+                if (VoteCandidate.at(0) == HunterNo && PlayerOnline.contains(HunterNo)){
+                    MakeMessage(1,18,HunterNo,AliveList,"请选择带走的对象");
+                    temp.clear();
+                    temp.push_back(HunterNo);
+                    emit Wait(temp);
+                    temp.clear();
+                }
+                MakeMessage(1,17,VoteCandidate.at(0),temp,"你死了");
             }
             round++;
         }while (VoteCandidate.size() != 1 && round<2);
         if (Explode) continue;
-
-        //广播通知X号玩家死亡
-        MakeMessage(1,10,-1,temp,tr("%1号玩家票数最多，死亡！").arg(VoteCandidate.at(0)+1));
-
-        //杀死被投的玩家，该玩家发表遗言
-        seats[VoteCandidate.at(0)]->setLife(false);
-        seats[VoteCandidate.at(0)]->setDeathDay(Day);
-       //猎人技能
-        if (VoteCandidate.at(0) == HunterNo && PlayerOnline.contains(HunterNo)){
-            MakeMessage(1,18,HunterNo,AliveList,"请选择带走的对象");
-            temp.clear();
-            temp.push_back(HunterNo);
-            emit Wait(temp);
-            temp.clear();
-        }
-        MakeMessage(1,17,VoteCandidate.at(0),temp,"你死了");
 
         //判断自爆
         if (Explode){
