@@ -1190,5 +1190,5 @@ void runtime::QuitOfficerElection(int x)
     QVector<int> temp;
     temp.clear();
     OfficerCandidateList.removeAll(x);
-    MakeMessage(1,10,-1,temp,tr("%1号玩家退出警长竞选").arg(x));
+    MakeMessage(1,10,-1,temp,tr("%1号玩家退出警长竞选").arg(x+1));
 }
