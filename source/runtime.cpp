@@ -137,7 +137,7 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     if (recid!=-1){
         Log.push_back(tr("To %1号玩家：").arg(recid+1)+det);
     }else{
-        Log.push_back(det);
+        Log.push_back(tr("To 全体玩家")+det);
     }
 }
 
@@ -230,7 +230,7 @@ void runtime::Game()
         }
 
         if (WhisperResults.size() > 0){
-            Log.push_back(tr("狼人选择了杀死%1号玩家").arg(WhisperResults.at(0)));
+            Log.push_back(tr("狼人选择了杀死%1号玩家").arg(WhisperResults.at(0)+1));
             KilledTonight.push_back(WhisperResults.at(0));
         }
         //杀死狼人讨论结果的玩家
@@ -450,7 +450,7 @@ void runtime::Game()
                         if (OfficerCandidateList.size()<=1){
                             temp.clear();
                             if (OfficerCandidateList.size()==1){
-                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)));
+                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)+1));
                                 OfficerNo=OfficerCandidateList.at(0);
                             }else{
                                 MakeMessage(1,10,-1,temp,"所有玩家均退选，警徽作废！");
@@ -936,7 +936,7 @@ void runtime::MedicineResult(int res){
     if (res != -1){
         Medicine = false;
         KilledTonight.clear();
-        Log.push_back(tr("女巫救了%1号玩家").arg(res));
+        Log.push_back(tr("女巫救了%1号玩家").arg(res+1));
           switch(seats.at(res)->getJob()){
           case Wolf:
               Contribution[WitchNo]-=1+(player_num-3)/2-getAllWolfs().size();
