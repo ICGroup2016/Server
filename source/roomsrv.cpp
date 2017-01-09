@@ -51,6 +51,8 @@ bool RoomSrv::event(QEvent *e){
                 return false;
             removePlayer(tmp.getArgument()[0],tmp.getSenderid());
             break;
+        case 5:
+            openDiscussion();
         case 6:
             sendRoomInfo(map.key(tmp.getSenderid(),-1));
             break;
