@@ -134,6 +134,11 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
         CurrentMessage.setDetail(det);
         emit SendMessage(CurrentMessage);
     }
+    if (recid!=-1){
+        Log.push_back(tr("To %1号玩家：").arg(recid+1)+det);
+    }else{
+        Log.push_back(tr("To 全体玩家")+det);
+    }
 }
 
 bool runtime::xxor(bool a, bool b)
@@ -154,6 +159,7 @@ runtime::runtime(QObject * parent,int num):QObject(parent)
     Explode = false;
     ExplodeID = -1;
     player * p;
+    Log.clear();
     for (int i = 0; i < num; i++){
         p = new player();
         seats.push_back(p);
@@ -224,6 +230,7 @@ void runtime::Game()
         }
 
         if (WhisperResults.size() > 0){
+            Log.push_back(tr("狼人选择了杀死%1号玩家").arg(WhisperResults.at(0)+1));
             KilledTonight.push_back(WhisperResults.at(0));
         }
         //杀死狼人讨论结果的玩家
@@ -398,6 +405,10 @@ void runtime::Game()
 
                     round = 0;
                     do{
+                        for (int i = 0; i<player_num;i++){
+                            OfficerVotePoll[i]=0;
+                            OfficerVoteResults[i]=-1;
+                        }
                         for (int i = 0; i < OfficerCandidateList.size(); i++){
                             if (seats.at(OfficerCandidateList.at(i))->getLife()){
                                 MakeMessage(1,12,OfficerCandidateList.at(i),temp,"请发表竞选陈述");
@@ -439,7 +450,7 @@ void runtime::Game()
                         if (OfficerCandidateList.size()<=1){
                             temp.clear();
                             if (OfficerCandidateList.size()==1){
-                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)));
+                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)+1));
                                 OfficerNo=OfficerCandidateList.at(0);
                             }else{
                                 MakeMessage(1,10,-1,temp,"所有玩家均退选，警徽作废！");
@@ -625,10 +636,6 @@ void runtime::Game()
 
         KilledTonight.clear();
 
-        for (int i = 0;i<player_num;i++){
-            VotePoll[i]=0;
-            VoteResults[i]=0;
-        }//清空投票信息
 
         //警长死亡传递警徽
         if (OfficerNo != -1)
@@ -742,6 +749,10 @@ void runtime::Game()
         VoteCandidate = AliveList;
         round = 0;
         do{
+            for (int i = 0;i<player_num;i++){
+                VotePoll[i]=0;
+                VoteResults[i]=0;
+            }//清空投票信息
             for (int i = 0; i<AliveList.size(); i++){
                 if (seats.at(AliveList.at(i))->getLife() && AliveList.at(i)!=OfficerNo){
                     MakeMessage(1,16,AliveList.at(i),VoteCandidate,"请在以下玩家中投票");
@@ -822,6 +833,7 @@ void runtime::Game()
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
     }
+    int Logsize = Log.size();
     VoteMax=-1000;
     VoteProcesser.clear();
     srand(time(NULL));
@@ -887,6 +899,11 @@ void runtime::Game()
         MakeMessage(1,10,-1,temp,tr("%1号玩家的得分为%2分").arg(i+1).arg(Contribution[i]));
     }
     MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));
+    MakeMessage(1,10,-1,temp,"下面开始是复盘信息：");
+    for (int i=0; i<Logsize; i++){
+        MakeMessage(1,10,-1,temp,Log.at(i));
+    }
+    MakeMessage(1,12,-1,temp,"复盘信息结束，下面可以自由讨论");
 }
 
 void runtime::WhisperResult(int wolfseat, int seat){
@@ -912,12 +929,14 @@ void runtime::WhisperResult(int wolfseat, int seat){
 void runtime::OfficerCandidate(int candi)
 {
     OfficerCandidateList.push_back(candi);
+    Log.push_back(tr("%1号玩家参选警长").arg(candi+1));
 }
 
 void runtime::MedicineResult(int res){
     if (res != -1){
         Medicine = false;
         KilledTonight.clear();
+        Log.push_back(tr("女巫救了%1号玩家").arg(res+1));
           switch(seats.at(res)->getJob()){
           case Wolf:
               Contribution[WitchNo]-=1+(player_num-3)/2-getAllWolfs().size();
@@ -930,12 +949,15 @@ void runtime::MedicineResult(int res){
               Contribution[WitchNo]+=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
               break;
           }
+    }else{
+        Log.push_back("女巫选择不救");
     }
 }
 
 void runtime::PoisonResult(int tar){
     if (tar!=-1){
         Poison = false;
+        Log.push_back(tr("女巫毒了%1号玩家").arg(tar+1));
         if (!KilledTonight.contains(tar))
             KilledTonight.push_back(tar);
         PoisonTarget = tar;
@@ -951,12 +973,15 @@ void runtime::PoisonResult(int tar){
               Contribution[WitchNo]-=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
               break;
           }
+    }else{
+        Log.push_back("女巫没有使用毒药");
     }
 }
 
 void runtime::SeeResult(int res)
 {
     SeeResultIsWolf = (seats.at(res)->getJob() == Wolf);
+    Log.push_back(tr("预言家看了%1号玩家的身份").arg(res+1));
 }
 
 void runtime::OfficerElection(int voter, int voted)
@@ -1166,6 +1191,8 @@ void runtime::HunterKill(int x)
             Contribution[HunterNo]-=player_num-(player_num-3)/2-3-getAlivePlayerList().size()+getAllWolfs().size()+seats.at(WitchNo)->getLife()?1:0+seats.at(SeerNo)->getLife()?1:0;
             break;
         }
+    }else{
+        Log.push_back("猎人选择不带人");
     }
 }
 
