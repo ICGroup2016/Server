@@ -252,7 +252,7 @@ void runtime::Game()
             if (Medicine)
             {
                 if (Day == 0 && seats.at(WitchNo)->getLife()){
-                    MakeMessage(1,7,WitchNo,WhisperResults,"今晚，他死了，你有一瓶解药，是否要救？");
+                    MakeMessage(1,7,WitchNo,KilledTonight,"今晚，他死了，你有一瓶解药，是否要救？");
                     temp.clear();
                     temp.push_back(WitchNo);
                     emit Wait(temp);
