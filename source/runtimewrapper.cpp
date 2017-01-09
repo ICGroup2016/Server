@@ -22,7 +22,8 @@ bool RuntimeWrapper::processMessage(Message msg)
     if(msg.getType()==1){
         switch(msg.getSubtype()){
         case 5:
-            rt.QuitOfficerElection(msg.getSenderid());
+            if(!msg.getArgument()[0])
+                rt.QuitOfficerElection(msg.getSenderid());
             break;
         case 6:
             if(msg.getArgument().isEmpty())

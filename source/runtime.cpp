@@ -2,7 +2,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <QDebug>
-
+#include <QtCore>
 bool runtime::Check()
 {
     if (getAllWolfs().size()==0){
@@ -899,6 +899,7 @@ void runtime::Game()
         MakeMessage(1,10,-1,temp,tr("%1号玩家的得分为%2分").arg(i+1).arg(Contribution[i]));
     }
     MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));
+    QThread::sleep(5);
     MakeMessage(1,10,-1,temp,"下面开始是复盘信息：");
     for (int i=0; i<Logsize; i++){
         MakeMessage(1,10,-1,temp,Log.at(i));
@@ -1165,6 +1166,7 @@ bool runtime::setExplode(int x)
         ExplodeID = x;
         seats[x]->setLife(false);
         seats[x]->setDeathDay(Day);
+        Contribution[x]=0;
         return true;
     }
     return false;
@@ -1200,7 +1202,7 @@ void runtime::RemovePlayer(int x)
 {
     QVector<int> temp;
     temp.clear();
-    if(seats.at(OfficerNo)->getLife()){
+    if(OfficerNo!=-1&&seats.at(OfficerNo)->getLife()){
         MakeMessage(1,10,-1,temp,tr("%1号玩家因掉线死亡").arg(x+1));
     }
     if (x == OfficerNo && seats.at(OfficerNo)->getLife()){
