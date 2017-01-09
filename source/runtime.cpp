@@ -136,6 +136,11 @@ void runtime::MakeMessage(int t, int subt, int recid, QVector<int> arg, QString 
     }
 }
 
+bool runtime::xxor(bool a, bool b)
+{
+    return ((!a)&&(b))||((!b)&&(a));
+}
+
 runtime::runtime(QObject * parent,int num):QObject(parent)
 {
     player_num = num;
@@ -190,6 +195,7 @@ void runtime::Game()
             MakeMessage(1,4,WolfList.at(i),WolfList,"请讨论夜间杀死的玩家");
         }//让狼人睁眼，公布可杀玩家列表，开启狼人讨论聊天室
 
+        MakeMessage(1,10,-1,temp,"狼人正在讨论，请耐心等待");
         emit Wait(WolfList);
 
         if (!Check()){ break;}
@@ -335,10 +341,10 @@ void runtime::Game()
             //确认死亡
             for (int i = 0; i< KilledTonight.size(); i++){
                 seats[KilledTonight.at(i)]->setLife(false);
+                seats[KilledTonight.at(i)]->setDeathDay(Day);
                 MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
             }
             MakeMessage(1,17,ExplodeID,temp,"你死了");
-            Explode = false;
             ExplodeID = -1;
             continue;
         }
@@ -351,7 +357,6 @@ void runtime::Game()
             if (Explode){
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
-                Explode = false;
                 ExplodeID = -1;
                 MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                 continue;
@@ -364,7 +369,6 @@ void runtime::Game()
             if (Explode){
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
-                Explode = false;
                 ExplodeID = -1;
                 MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                 continue;
@@ -376,7 +380,6 @@ void runtime::Game()
                 if (Explode){
                     MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                     MakeMessage(1,17,ExplodeID,temp,"你死了");
-                    Explode = false;
                     ExplodeID = -1;
                     continue;
                 }
@@ -388,7 +391,6 @@ void runtime::Game()
                     if (Explode){
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
-                        Explode = false;
                         ExplodeID = -1;
                         MakeMessage(1,10,-1,temp,"本轮游戏无警长！");
                         continue;
@@ -475,13 +477,13 @@ void runtime::Game()
                                     VoteProcesser.push_back(i);
                                 }
                             }
-                            OfficerCandidateList = VoteProcesser;
                             MakeMessage(1,10,-1,temp,"本次投票结果如下：");
                             for (int i = 0; i < player_num; i++){
                                 if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
                                     MakeMessage(1,10,-1,temp,tr("%1号玩家投票给了%2号玩家").arg(i+1).arg(OfficerVoteResults[i]+1));
                                 }
                             }
+                            OfficerCandidateList = VoteProcesser;
                             //判断自爆
                             if (Explode){
                                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
@@ -507,7 +509,6 @@ void runtime::Game()
                     if (Explode && ExplodeID == -1) continue;
 
                     if (Explode){
-                        Explode = false;
                         //公布死亡情况
                         switch(KilledTonight.size()){
                         case 0:
@@ -523,6 +524,7 @@ void runtime::Game()
                         //确认死亡
                         for (int i = 0; i< KilledTonight.size(); i++){
                             seats[KilledTonight.at(i)]->setLife(false);
+                            seats[KilledTonight.at(i)]->setDeathDay(Day);
                             MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
                         }
                         continue;
@@ -533,7 +535,6 @@ void runtime::Game()
                     if (Explode){
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
-                        Explode = false;
                         ExplodeID = -1;
                         continue;
                     }
@@ -555,6 +556,17 @@ void runtime::Game()
         //确认死亡
         for (int i = 0; i< KilledTonight.size(); i++){
             seats[KilledTonight.at(i)]->setLife(false);
+            seats[KilledTonight.at(i)]->setDeathDay(Day);
+            //猎人如不是被毒死的，则发动技能
+            if (KilledTonight.contains(HunterNo)){
+                if (PoisonTarget != HunterNo && PlayerOnline.contains(HunterNo)){
+                    MakeMessage(1,18,HunterNo,getAlivePlayerList(),"请选择带走的对象");
+                    temp.clear();
+                    temp.push_back(HunterNo);
+                    emit Wait(temp);
+                    temp.clear();
+                }
+            }
             MakeMessage(1,17,KilledTonight.at(i),temp,"你死了");
         }
 
@@ -567,24 +579,12 @@ void runtime::Game()
             continue;
         }
 
-        //猎人如不是被毒死的，则发动技能
-        if (KilledTonight.contains(HunterNo)){
-            if (PoisonTarget != HunterNo && PlayerOnline.contains(HunterNo)){
-                MakeMessage(1,18,HunterNo,getAlivePlayerList(),"请选择带走的对象");
-                temp.clear();
-                temp.push_back(HunterNo);
-                emit Wait(temp);
-                temp.clear();
-            }
-        }
-
-        if (Check()) break;
+        if (!Check()) break;
         //判断自爆
         if (Explode){
             MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
             MakeMessage(1,17,ExplodeID,temp,"你死了");
             ExplodeID = -1;
-            Explode = false;
             continue;
         }
 
@@ -654,7 +654,6 @@ void runtime::Game()
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
                 ExplodeID = -1;
-                Explode = false;
                 continue;
             }
             MakeMessage(1,10,-1,temp,"下面请警长归票、发言并决定发言方向");
@@ -670,7 +669,6 @@ void runtime::Game()
                 MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                 MakeMessage(1,17,ExplodeID,temp,"你死了");
                 ExplodeID = -1;
-                Explode = false;
                 continue;
             }
             if (Direc){
@@ -682,10 +680,10 @@ void runtime::Game()
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
                         ExplodeID = -1;
-                        Explode = false;
                         break;
                     }
                     if (seats.at(i)->getLife()){
+                        MakeMessage(1,10,-1,temp,tr("请%1号玩家发言").arg(i+1));
                         MakeMessage(1,12,i,temp);
                         temp.clear();
                         temp.push_back(i);
@@ -693,7 +691,9 @@ void runtime::Game()
                         temp.clear();
                     }
                 }
-                if (Explode) continue;
+                if (Explode){
+                    continue;
+                }
             }else{
                 MakeMessage(1,10,-1,temp,"从警长左侧开始发言");
                 for (int i = (OfficerNo - 1 + player_num) % player_num; i != OfficerNo; i = (i - 1 + player_num) % player_num){
@@ -702,10 +702,10 @@ void runtime::Game()
                         MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                         MakeMessage(1,17,ExplodeID,temp,"你死了");
                         ExplodeID = -1;
-                        Explode = false;
                         break;
                     }
                     if (seats.at(i)->getLife()){
+                        MakeMessage(1,10,-1,temp,tr("请%1号玩家发言").arg(i+1));
                         MakeMessage(1,12,i,temp);
                         temp.clear();
                         temp.push_back(i);
@@ -731,7 +731,6 @@ void runtime::Game()
                     MakeMessage(1,10,-1,temp,tr("%1号玩家狼人自爆！！立即进入黑夜！！").arg(ExplodeID+1));
                     MakeMessage(1,17,ExplodeID,temp,"你死了");
                     ExplodeID = -1;
-                    Explode = false;
                     break;
                 }
             }
@@ -739,11 +738,12 @@ void runtime::Game()
         }
 
         //投票
+        AliveList = getAlivePlayerList();
         VoteCandidate = AliveList;
         round = 0;
         do{
             for (int i = 0; i<AliveList.size(); i++){
-                if (seats.at(AliveList.at(i))->getLife()){
+                if (seats.at(AliveList.at(i))->getLife() && AliveList.at(i)!=OfficerNo){
                     MakeMessage(1,16,AliveList.at(i),VoteCandidate,"请在以下玩家中投票");
                     temp.clear();
                     temp.push_back(AliveList.at(i));
@@ -788,6 +788,15 @@ void runtime::Game()
 
         //杀死被投的玩家，该玩家发表遗言
         seats[VoteCandidate.at(0)]->setLife(false);
+        seats[VoteCandidate.at(0)]->setDeathDay(Day);
+       //猎人技能
+        if (VoteCandidate.at(0) == HunterNo && PlayerOnline.contains(HunterNo)){
+            MakeMessage(1,18,HunterNo,AliveList,"请选择带走的对象");
+            temp.clear();
+            temp.push_back(HunterNo);
+            emit Wait(temp);
+            temp.clear();
+        }
         MakeMessage(1,17,VoteCandidate.at(0),temp,"你死了");
 
         //判断自爆
@@ -804,18 +813,7 @@ void runtime::Game()
             emit Wait(temp);
             temp.clear();
         }
-
-
         AliveList = getAlivePlayerList();
-
-        //猎人技能
-        if (VoteCandidate.at(0) == HunterNo && PlayerOnline.contains(HunterNo)){
-            MakeMessage(1,18,HunterNo,AliveList,"请选择带走的对象");
-            temp.clear();
-            temp.push_back(HunterNo);
-            emit Wait(temp);
-            temp.clear();
-        }
     }
     MakeMessage(1,3,-1,temp,"游戏结束！");
     if (Winner){
@@ -823,21 +821,21 @@ void runtime::Game()
     }
     else{
         MakeMessage(1,10,-1,temp,"狼人获胜！");
-    }
-  /* VoteMax=-1000;
+    }/*
+    VoteMax=-1000;
     VoteProcesser.clear();
     srand(time(NULL));
     temp.clear();
     for (int i=0; i<player_num; i++){
         if (Contribution[i]>VoteMax){
             VoteMax=Contribution[i];
-            VoteProcesser.clear;
+            VoteProcesser.clear();
             VoteProcesser.push_back(i);
         }
         else{
             if (Contribution[i]==VoteMax){
-                if (Winner ^ seats.at(VoteProcesser[0])->getJob()==Wolf){
-                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                if (xxor((Winner),(seats.at(VoteProcesser[0])->getJob()==Wolf))){
+                    if (xxor((!Winner),(seats.at(i)->getJob()==Wolf))){
                         VoteProcesser.clear();
                         VoteProcesser.push_back(i);
                     }
@@ -849,24 +847,35 @@ void runtime::Game()
                             }
                         }
                         else{
-                            if (rand()%2){
+                            if (seats.at(i)->getDeathDay()>seats.at(VoteProcesser[0])->getDeathDay()) {
                                 VoteProcesser.clear();
                                 VoteProcesser.push_back(i);
+                            }
+                            else{
+                                if (rand()%2){
+                                    VoteProcesser.clear();
+                                    VoteProcesser.push_back(i);
+                                }
                             }
                         }
                     }
                 }
                 else{
-                    if (!Winner ^ seats.at(i)->getJob()==Wolf){
+                    if (xxor((!Winner),(seats.at(i)->getJob()==Wolf))){
                         if(Winner){
                             if (int(seats.at(i)->getJob())<int(seats.at(VoteProcesser[0])->getJob())){
                                 VoteProcesser.clear();
                                 VoteProcesser.push_back(i);
                             }
                         }else{
-                            if (rand()%2){
+                            if (seats.at(i)->getDeathDay()>seats.at(VoteProcesser[0])->getDeathDay()){
                                 VoteProcesser.clear();
                                 VoteProcesser.push_back(i);
+                            }else{
+                                if (rand()%2){
+                                    VoteProcesser.clear();
+                                    VoteProcesser.push_back(i);
+                                }
                             }
                         }
                     }
@@ -880,12 +889,11 @@ void runtime::Game()
     MakeMessage(1,10,-1,temp,tr("本局游戏的MVP是——%1号玩家！").arg(VoteProcesser.at(0)+1));*/
 }
 
-
 void runtime::WhisperResult(int wolfseat, int seat){
     if (!WhisperResults.contains(seat)){
         WhisperResults.push_back(seat);
-    }
-    /*switch(seats.at(seat)->getJob()){
+    }/*
+      switch(seats.at(seat)->getJob()){
       case Wolf:
           Contribution[wolfseat]-=4;
           break;
@@ -909,8 +917,8 @@ void runtime::OfficerCandidate(int candi)
 void runtime::MedicineResult(int res){
     if (res != -1){
         Medicine = false;
-        KilledTonight.clear();
-        /*switch(seats.at(res)->getJob()){
+        KilledTonight.clear();/*
+          switch(seats.at(res)->getJob()){
           case Wolf:
               Contribution[WitchNo]-=1+(player_num-3)/2-getAllWolfs().size();
               break;
@@ -930,8 +938,8 @@ void runtime::PoisonResult(int tar){
         Poison = false;
         if (!KilledTonight.contains(tar))
             KilledTonight.push_back(tar);
-        PoisonTarget = tar;
-        /*switch(seats.at(tar)->getJob()){
+        PoisonTarget = tar;/*
+          switch(seats.at(tar)->getJob()){
           case Wolf:
               Contribution[WitchNo]+=1+(player_num-3)/2-getAllWolfs().size();
               break;
@@ -954,8 +962,8 @@ void runtime::SeeResult(int res)
 void runtime::OfficerElection(int voter, int voted)
 {
     OfficerVoteResults[voter] = voted;
-    OfficerVotePoll[voted] += 1;
-    /*if (seats.at(voter)->getJob()==Wolf){
+    OfficerVotePoll[voted] += 1;/*
+    if (seats.at(voter)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
             Contribution[voter]-=2;
@@ -1001,8 +1009,8 @@ void runtime::OfficerPass(int receiver)
         MakeMessage(1,10,-1,temp,"警徽撕毁，此后游戏无警长");
     }else{
         MakeMessage(1,10,-1,temp,tr("警长变为%1号玩家").arg(receiver+1));
-    }
-    /*if (seats.at(OfficerNo)->getJob()==Wolf){
+    }/*
+    if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(receiver)->getJob()){
         case Seer:
             Contribution[OfficerNo]-=2;
@@ -1022,7 +1030,8 @@ void runtime::OfficerPass(int receiver)
             case Wolf:
                 Contribution[OfficerNo]-=5;
                 break;
-            }else switch(){
+            }
+    }else switch(seats.at(receiver)->getJob()){
                     case Seer:
                         Contribution[OfficerNo]+=3;
                     case Witch:
@@ -1034,6 +1043,7 @@ void runtime::OfficerPass(int receiver)
                         break;
                     case Wolf:
                         Contribution[OfficerNo]-=4;
+                        break;
                 }*/
 }
 
@@ -1043,8 +1053,8 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
-    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));
-    /*if (seats.at(OfficerNo)->getJob()==Wolf){
+    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted+1));/*
+    if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
             Contribution[OfficerNo]+=2;
@@ -1085,8 +1095,8 @@ void runtime::OfficerDecide(int voted, bool direction)
 void runtime::DayVote(int voter, int voted)
 {
     VoteResults[voter] = voted;
-    VotePoll[voted]+=2;
-    /*if (seats.at(voter)->getJob()==Wolf){
+    VotePoll[voted]+=2;/*
+    if (seats.at(voter)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
             Contribution[voter]+=2;
@@ -1129,6 +1139,7 @@ bool runtime::setExplode(int x)
         Explode = true;
         ExplodeID = x;
         seats[x]->setLife(false);
+        seats[x]->setDeathDay(Day);
         return true;
     }
     return false;
@@ -1140,9 +1151,10 @@ void runtime::HunterKill(int x)
     temp.clear();
     if (x != -1){
         seats[x]->setLife(false);
+        seats[x]->setDeathDay(Day);
         MakeMessage(1,10,-1,temp,tr("%1号猎人死亡，开枪杀死了%2号玩家").arg(HunterNo+1).arg(x+1));
-        MakeMessage(1,17,x,temp,"你死了");
-      /*switch(seats.at(x)->getJob()){
+        MakeMessage(1,17,x,temp,"你死了");/*
+        switch(seats.at(x)->getJob()){
         case Wolf:
             Contribution[HunterNo]+=1+(player_num-3)/2-getAllWolfs().size();
             break;
@@ -1170,6 +1182,7 @@ void runtime::RemovePlayer(int x)
     }
     PlayerOnline[x] = false;
     seats.at(x)->setLife(false);
+    seats.at(x)->setDeathDay(Day);
 }
 
 void runtime::QuitOfficerElection(int x)
