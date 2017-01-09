@@ -437,7 +437,7 @@ void runtime::Game()
                         if (OfficerCandidateList.size()<=1){
                             temp.clear();
                             if (OfficerCandidateList.size()==1){
-                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)));
+                                MakeMessage(1,10,-1,temp,tr("只剩1名玩家参选，%1号玩家自动成为警长").arg(OfficerCandidateList.at(0)+1));
                                 OfficerNo=OfficerCandidateList.at(0);
                             }else{
                                 MakeMessage(1,10,-1,temp,"所有玩家均退选，警徽作废！");
@@ -445,6 +445,10 @@ void runtime::Game()
                             }
                             break;
                         }else{
+                            for (int i = 0; i<player_num;i++){
+                                OfficerVotePoll[i]=0;
+                                OfficerVoteResults[i]=-1;
+                            }
                             for (int i = 0; i < player_num; i++){
                                 if (seats.at(i)->getLife() && !OfficerCandidateList.contains(i)){
                                     MakeMessage(1,13,i,OfficerCandidateList,"请投票");
@@ -624,10 +628,7 @@ void runtime::Game()
 
         KilledTonight.clear();
 
-        for (int i = 0;i<player_num;i++){
-            VotePoll[i]=0;
-            VoteResults[i]=0;
-        }//清空投票信息
+
 
         //警长死亡传递警徽
         if (OfficerNo != -1)
@@ -741,6 +742,10 @@ void runtime::Game()
         VoteCandidate = AliveList;
         round = 0;
         do{
+            for (int i = 0;i<player_num;i++){
+                VotePoll[i]=0;
+                VoteResults[i]=0;
+            }//清空投票信息
             for (int i = 0; i<AliveList.size(); i++){
                 if (seats.at(AliveList.at(i))->getLife() && AliveList.at(i)!=OfficerNo){
                     MakeMessage(1,16,AliveList.at(i),VoteCandidate,"请在以下玩家中投票");
@@ -1040,7 +1045,7 @@ void runtime::OfficerDecide(int voted, bool direction)
     temp.clear();
     VoteResults[OfficerNo] = voted;
     VotePoll[voted]+=3;
-    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted));/*
+    MakeMessage(1,10,-1,temp,tr("警长归票%1号").arg(voted+1));/*
     if (seats.at(OfficerNo)->getJob()==Wolf){
         switch (seats.at(voted)->getJob()){
         case Seer:
@@ -1174,5 +1179,5 @@ void runtime::QuitOfficerElection(int x)
     QVector<int> temp;
     temp.clear();
     OfficerCandidateList.removeAll(x);
-    MakeMessage(1,10,-1,temp,tr("%1号玩家退出警长竞选").arg(x));
+    MakeMessage(1,10,-1,temp,tr("%1号玩家退出警长竞选").arg(x+1));
 }
