@@ -95,7 +95,6 @@ bool Daemon::event(QEvent *e){
 }
 void Daemon::onNetworkError(Message msg){
     int id=msg.getSenderid();
-    qDebug()<<id<<" network error:"<<msg.getDetail()<<"!\n";
     for(int i=0;i<connections.size();i++){
         if(connections[i].isNull()||connections[i]->getID()==id){
             connections.removeAt(i);

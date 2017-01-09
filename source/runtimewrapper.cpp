@@ -10,15 +10,20 @@ RuntimeWrapper::RuntimeWrapper(QObject *parent, int num, int id)
 }
 void RuntimeWrapper::run()
 {
+    offlineList.clear();
     rt.Game();
+    offlineList.clear();
+    waitList.clear();
     Message msg(2,5,1,-1);
     emit emitMessage(msg);
 }
 bool RuntimeWrapper::processMessage(Message msg)
 {
-    qDebug()<<"In processMessage";
     if(msg.getType()==1){
         switch(msg.getSubtype()){
+        case 5:
+            rt.QuitOfficerElection(msg.getSenderid());
+            break;
         case 6:
             if(msg.getArgument().isEmpty())
                 return false;
@@ -78,17 +83,18 @@ bool RuntimeWrapper::processMessage(Message msg)
         return true;
     }
     return false;
-    qDebug()<<"Out processMessage";
 }
 void RuntimeWrapper::waitForPlayer(QVector<int> i){
     waitLock.lock();
     waitList=i;
+    for(int i=0;i<offlineList.size();i++)
+        if(waitList.contains(offlineList[i]))
+            waitList.removeAt(waitList.indexOf(offlineList[i]));
     if(!waitList.isEmpty())
         waitForResponse.wait(&waitLock);
     waitLock.unlock();
 }
 void RuntimeWrapper::stopWaitForPlayer(int i){
-    qDebug()<<"In stopWaitForPlayer";
     waitLock.lock();
     if(waitList.contains(i))
         waitList.remove(waitList.indexOf(i));
@@ -98,10 +104,10 @@ void RuntimeWrapper::stopWaitForPlayer(int i){
         waitForResponse.wakeAll();
     }
     waitLock.unlock();
-    qDebug()<<"out waitForPlayer";
 }
 void RuntimeWrapper::playerOffline(int i){
     rt.RemovePlayer(i);
+    offlineList.append(i);
     stopWaitForPlayer(i);
 }
 void RuntimeWrapper::onExplode(int seat){
